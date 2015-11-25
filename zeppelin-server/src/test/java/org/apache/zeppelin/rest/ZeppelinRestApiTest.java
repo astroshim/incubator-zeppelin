@@ -259,7 +259,7 @@ public class ZeppelinRestApiTest extends AbstractTestRestApi {
     LOG.info("testCloneNotebook");
     // Create note to clone
     Note note = ZeppelinServer.notebook.createNote();
-    assertNotNull("cant create new note", note);
+    assertNotNull("can't create new note", note);
     note.setName("source note for clone");
     Paragraph paragraph = note.addParagraph();
     paragraph.setText("%md This is my new paragraph in my new note");
@@ -300,5 +300,49 @@ public class ZeppelinRestApiTest extends AbstractTestRestApi {
     get.releaseConnection();
   }
 
+  @Test
+  public void testNoteJobs() throws IOException, InterruptedException {
+    LOG.info("testNoteJobs");
+    // Create note to run test.
+    Note note = ZeppelinServer.notebook.createNote();
+    assertNotNull("can't create new note", note);
+    note.setName("note for run test");
+    Paragraph paragraph = note.addParagraph();
+    paragraph.setText("%md This is test paragraph.");
+    note.persist();
+    String noteID = note.getId();
+
+    // Call Run Notebook Jobs REST API
+    PostMethod postNoteJobs = httpPost("/notebook/job/" + noteID, "");
+    assertThat("test notebook jobs run:", postNoteJobs, isAccepted());
+    postNoteJobs.releaseConnection();
+
+    // wait until job is finished or timeout.
+    int timeout = 1;
+    while (paragraph.getStatus() == Status.PENDING || paragraph.isTerminated()) {
+      Thread.sleep(1000);
+      if (timeout++ > 10) {
+        LOG.info("testNoteJobs timeout job.");
+        break;
+      }
+    }
+    // Call Stop Notebook Jobs REST API
+    DeleteMethod deleteNoteJobs = httpDelete("/notebook/job/" + noteID);
+    assertThat("test notebook stop:", deleteNoteJobs, isAccepted());
+    deleteNoteJobs.releaseConnection();    
+    
+    // Call Run paragraph REST API
+    PostMethod postParagraph = httpPost("/notebook/job/" + noteID + "/" + paragraph.getId(), "");
+    assertThat("test paragraph run:", postParagraph, isAccepted());
+    postParagraph.releaseConnection();    
+    
+    // Call Stop paragraph REST API
+    DeleteMethod deleteParagraph = httpDelete("/notebook/job/" + noteID + "/" + paragraph.getId());
+    assertThat("test paragraph stop:", deleteParagraph, isAccepted());
+    deleteParagraph.releaseConnection();    
+    
+    //cleanup
+    ZeppelinServer.notebook.removeNote(note.getId());
+  }
 }
 

@@ -29,6 +29,7 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.zeppelin.interpreter.InterpreterSetting;
 import org.apache.zeppelin.notebook.Note;
 import org.apache.zeppelin.notebook.Notebook;
+import org.apache.zeppelin.notebook.Paragraph;
 import org.apache.zeppelin.rest.message.InterpreterSettingListForNoteBind;
 import org.apache.zeppelin.rest.message.NewInterpreterSettingRequest;
 import org.apache.zeppelin.rest.message.NewNotebookRequest;
@@ -166,11 +167,12 @@ public class NotebookRestApi {
     notebookServer.broadcastNoteList();
     return new JsonResponse(Status.OK, "").build();
   }
+  
   /**
    * Clone note REST API
    * @param
    * @return JSON with status.CREATED
-   * @throws IOException
+   * @throws IOException, CloneNotSupportedException, IllegalArgumentException
    */
   @POST
   @Path("{notebookId}")
@@ -184,5 +186,118 @@ public class NotebookRestApi {
     notebookServer.broadcastNote(newNote);
     notebookServer.broadcastNoteList();
     return new JsonResponse(Status.CREATED, "", newNote.getId()).build();
+  }
+  
+  /**
+   * Run notebook jobs REST API
+   * @param
+   * @return JSON with status.ACCEPTED
+   * @throws IOException, IllegalArgumentException
+   */
+  @POST
+  @Path("job/{notebookId}")
+  public Response runNoteJobs(@PathParam("notebookId") String notebookId) throws
+      IOException, IllegalArgumentException {
+    logger.info("run notebook jobs {} ", notebookId);
+    Note note = notebook.getNote(notebookId);
+    if (note == null) {
+      return new JsonResponse(Status.NOT_FOUND, "note not found.").build();
+    }
+    
+    note.runAll();
+    return new JsonResponse(Status.ACCEPTED).build();
+  }
+
+  /**
+   * Stop(delete) notebook jobs REST API
+   * @param
+   * @return JSON with status.ACCEPTED
+   * @throws IOException, IllegalArgumentException
+   */
+  @DELETE
+  @Path("job/{notebookId}")
+  public Response stopNoteJobs(@PathParam("notebookId") String notebookId) throws
+      IOException, IllegalArgumentException {
+    logger.info("stop notebook jobs {} ", notebookId);
+    Note note = notebook.getNote(notebookId);
+    if (note == null) {
+      return new JsonResponse(Status.NOT_FOUND, "note not found.").build();
+    }
+
+    for (Paragraph p : note.getParagraphs()) {
+      if (!p.isTerminated()) {
+        p.abort();
+      }
+    }
+    return new JsonResponse(Status.ACCEPTED).build();
+  }
+  
+  /**
+   * Get notebook job status REST API
+   * @param
+   * @return JSON with status.OK
+   * @throws IOException, IllegalArgumentException
+   */
+  @GET
+  @Path("job/{notebookId}")
+  public Response getNoteJobStatus(@PathParam("notebookId") String notebookId) throws
+      IOException, IllegalArgumentException {
+    logger.info("get notebook job status.");
+    Note note = notebook.getNote(notebookId);
+    if (note == null) {
+      return new JsonResponse(Status.NOT_FOUND, "note not found.").build();
+    }
+
+    return new JsonResponse(Status.OK, null, note.generateParagraphsInfo()).build();
+  }
+  
+  /**
+   * Run paragraph job REST API
+   * @param
+   * @return JSON with status.ACCEPTED
+   * @throws IOException, IllegalArgumentException
+   */
+  @POST
+  @Path("job/{notebookId}/{paragraphId}")
+  public Response runParagraph(@PathParam("notebookId") String notebookId, 
+                               @PathParam("paragraphId") String paragraphId) throws
+                               IOException, IllegalArgumentException {
+    logger.info("run paragraph job {} {} ", notebookId, paragraphId);
+    Note note = notebook.getNote(notebookId);
+    if (note == null) {
+      return new JsonResponse(Status.NOT_FOUND, "note not found.").build();
+    }
+    
+    if (note.getParagraph(paragraphId) == null) {
+      return new JsonResponse(Status.NOT_FOUND, "paragraph not found.").build();
+    }
+
+    note.run(paragraphId);
+    return new JsonResponse(Status.ACCEPTED).build();
+  }
+
+  /**
+   * Stop(delete) paragraph job REST API
+   * @param
+   * @return JSON with status.ACCEPTED
+   * @throws IOException, IllegalArgumentException
+   */
+  @DELETE
+  @Path("job/{notebookId}/{paragraphId}")
+  public Response stopParagraph(@PathParam("notebookId") String notebookId, 
+                                @PathParam("paragraphId") String paragraphId) throws
+                                IOException, IllegalArgumentException {
+    logger.info("stop paragraph job {} ", notebookId);
+    Note note = notebook.getNote(notebookId);
+    if (note == null) {
+      return new JsonResponse(Status.NOT_FOUND, "note not found.").build();
+    }
+
+    Paragraph p = note.getParagraph(paragraphId);
+    if (p == null) {
+      return new JsonResponse(Status.NOT_FOUND, "paragraph not found.").build();
+    }
+    p.abort();
+    return new JsonResponse(Status.ACCEPTED).build();
   }
 }
