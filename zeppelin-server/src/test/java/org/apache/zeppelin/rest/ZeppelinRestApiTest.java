@@ -18,6 +18,7 @@
 package org.apache.zeppelin.rest;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +27,8 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.zeppelin.conf.ZeppelinConfiguration;
+import org.apache.zeppelin.interpreter.InterpreterFactory;
+import org.apache.zeppelin.interpreter.InterpreterOption;
 import org.apache.zeppelin.interpreter.InterpreterSetting;
 import org.apache.zeppelin.notebook.Note;
 import org.apache.zeppelin.notebook.Paragraph;
@@ -300,5 +303,37 @@ public class ZeppelinRestApiTest extends AbstractTestRestApi {
     get.releaseConnection();
   }
 
+  @Test
+  public void testSchedule() throws InterruptedException, IOException{
+    InterpreterFactory factory;
+    factory = new InterpreterFactory(ZeppelinConfiguration.create(), 
+                                      new InterpreterOption(false), null);
+    
+    // create a note and a paragraph
+    Note note = ZeppelinServer.notebook.createNote();
+    note.getNoteReplLoader().setInterpreters(factory.getDefaultInterpreterSettingList());
+
+    Paragraph p = note.addParagraph();
+    p.setText("p1");
+    Date dateFinished = p.getDateFinished();
+    assertNull(dateFinished);
+
+    // set cron scheduler, once a second
+    Map<String, Object> config = note.getConfig();
+    config.put("cron", "* * * * * ?");
+    note.setConfig(config);
+    ZeppelinServer.notebook.refreshCron(note.id());
+    Thread.sleep(1*1000);
+    
+    // remove cron scheduler.
+    config.put("cron", null);
+    note.setConfig(config);
+    ZeppelinServer.notebook.refreshCron(note.id());
+    Thread.sleep(1000);
+    dateFinished = p.getDateFinished();
+    assertNotNull(dateFinished);
+    Thread.sleep(1*1000);
+    assertEquals(dateFinished, p.getDateFinished());
+  }
 }
 
