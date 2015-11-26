@@ -259,7 +259,7 @@ public class ZeppelinRestApiTest extends AbstractTestRestApi {
     LOG.info("testCloneNotebook");
     // Create note to clone
     Note note = ZeppelinServer.notebook.createNote();
-    assertNotNull("cant create new note", note);
+    assertNotNull("can't create new note", note);
     note.setName("source note for clone");
     Paragraph paragraph = note.addParagraph();
     paragraph.setText("%md This is my new paragraph in my new note");
@@ -300,5 +300,80 @@ public class ZeppelinRestApiTest extends AbstractTestRestApi {
     get.releaseConnection();
   }
 
+  @Test
+  public void testNoteJobs() throws IOException, InterruptedException {
+    LOG.info("testNoteJobs");
+    // Create note to run test.
+    Note note = ZeppelinServer.notebook.createNote();
+    assertNotNull("can't create new note", note);
+    note.setName("note for run test");
+    Paragraph paragraph = note.addParagraph();
+    paragraph.setText("%md This is test paragraph.");
+    note.persist();
+    String noteID = note.getId();
+
+    // Call Run Notebook Jobs REST API
+    PostMethod postNoteJobs = httpPost("/notebook/job/" + noteID, "");
+    assertThat("test notebook jobs run:", postNoteJobs, isAccepted());
+    postNoteJobs.releaseConnection();
+    Thread.sleep(1000);
+
+    // Call Stop Notebook Jobs REST API
+    DeleteMethod deleteNoteJobs = httpDelete("/notebook/job/" + noteID);
+    assertThat("test notebook stop:", deleteNoteJobs, isAccepted());
+    deleteNoteJobs.releaseConnection();    
+    Thread.sleep(1000);
+    
+    // Call Run paragraph REST API
+    PostMethod postParagraph = httpPost("/notebook/job/" + noteID + "/" + paragraph.getId(), "");
+    assertThat("test paragraph run:", postParagraph, isAccepted());
+    postParagraph.releaseConnection();    
+    Thread.sleep(1000);
+    
+    // Call Stop paragraph REST API
+    DeleteMethod deleteParagraph = httpDelete("/notebook/job/" + noteID + "/" + paragraph.getId());
+    assertThat("test paragraph stop:", deleteParagraph, isAccepted());
+    deleteParagraph.releaseConnection();    
+    Thread.sleep(1000);
+    
+    //cleanup
+    ZeppelinServer.notebook.removeNote(note.getId());
+  }
+  
+  @Test
+  public void testCronJobs() throws InterruptedException, IOException{
+    // create a note and a paragraph
+    Note note = ZeppelinServer.notebook.createNote();
+
+    note.setName("note for run test");
+    Paragraph paragraph = note.addParagraph();
+    paragraph.setText("%md This is test paragraph.");
+    
+    String jsonRequest = "{\"cron\":\"* * * * * ?\" }";
+    // right cron expression but not exist note.
+    PostMethod postCron = httpPost("/notebook/cron/notexistnote", jsonRequest);
+    assertThat("", postCron, isNotFound());
+    postCron.releaseConnection();
+    Thread.sleep(1000);
+    
+    // right cron expression.
+    postCron = httpPost("/notebook/cron/" + note.getId(), jsonRequest);
+    assertThat("", postCron, isAccepted());
+    postCron.releaseConnection();
+    Thread.sleep(1000);
+    
+    // wrong cron expression.
+    jsonRequest = "{\"cron\":\"a * * * * ?\" }";
+    postCron = httpPost("/notebook/cron/" + note.getId(), jsonRequest);
+    assertThat("", postCron, isBadRequest());
+    postCron.releaseConnection();
+    Thread.sleep(1000);
+    
+    // remove cron job.
+    DeleteMethod deleteCron = httpDelete("/notebook/cron/" + note.getId());
+    assertThat("", deleteCron, isAccepted());
+    deleteCron.releaseConnection();
+    ZeppelinServer.notebook.removeNote(note.getId());
+  }  
 }
 
