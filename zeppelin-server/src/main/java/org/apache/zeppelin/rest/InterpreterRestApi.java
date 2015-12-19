@@ -77,6 +77,25 @@ public class InterpreterRestApi {
   }
 
   /**
+   * Get specify interpreter setting REST API
+   * @param message - JSON with interpreter id.
+   * @return JSON with status.OK
+   * @throws InterpreterException, IllegalArgumentException
+   */
+  @GET
+  @Path("setting/{id}")
+  public Response getSettingById(@PathParam("id") String id) {
+    logger.info("Get interpreterSetting {}", id);
+
+    InterpreterSetting setting = interpreterFactory.get(id);
+    if (setting == null) {
+      return new JsonResponse(Status.NOT_FOUND, "", id).build();
+    }
+    
+    return new JsonResponse(Status.OK, "", setting).build();
+  }
+
+  /**
    * Add new interpreter setting
    * @param message
    * @return
