@@ -376,7 +376,7 @@ public class NotebookServer extends WebSocketServlet implements
     if (config == null) {
       return;
     }
-
+    
     Note note = notebook.getNote(noteId);
     if (note != null) {
       boolean cronUpdated = isCronUpdated(config, note.getConfig());

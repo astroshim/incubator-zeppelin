@@ -45,6 +45,7 @@ import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
+import org.quartz.JobListener;
 import org.quartz.SchedulerException;
 import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
@@ -373,7 +374,7 @@ public class Notebook {
   public void setJobListenerFactory(JobListenerFactory jobListenerFactory) {
     this.jobListenerFactory = jobListenerFactory;
   }
-
+  
   /**
    * Cron task for the note.
    *
@@ -383,12 +384,71 @@ public class Notebook {
   public static class CronJob implements org.quartz.Job {
     public static Notebook notebook;
 
+    public class CronJobListener implements JobListener {
+      @Override
+      public String getName() {
+        return "CronJob";
+      }
+    
+      @Override
+      public void jobToBeExecuted(JobExecutionContext context) {
+        // do something with the event
+        System.out.println("job executed!!");
+      }
+    
+      @Override
+      public void jobWasExecuted(JobExecutionContext context,
+          JobExecutionException jobException) {
+        // do something with the event
+        System.out.println("job wa executed!!");
+      }
+    
+      @Override
+      public void jobExecutionVetoed(JobExecutionContext context) {
+        // do something with the event
+        System.out.println("jobExecutionVetoed!!");
+      }
+    }
+    
+    
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
 
       String noteId = context.getJobDetail().getJobDataMap().getString("noteId");
       Note note = notebook.getNote(noteId);
       note.runAll();
+      
+//      //Listener attached to jobKey
+//      try {
+//        context.getScheduler().getListenerManager().addJobListener(
+//            new CronJobListener()
+//        );
+//      } catch (SchedulerException e) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      }
+      
+      while (!note.getLastParagraph().isTerminated()) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+      
+//      try {
+        boolean releaseResource = (boolean) note.getConfig().get("releaseresource");
+        System.out.println("restarting interpreter.........." + releaseResource);
+        if (releaseResource) {
+          for (InterpreterSetting setting : note.getNoteReplLoader().getInterpreterSettings()) {
+  //          System.out.println("restarting interpreter name : " + setting.getName() 
+  //                  + "," + setting.id());
+            notebook.getInterpreterFactory().restart(setting.id());
+          }
+        }
+//      } catch (NullPointerException e) {
+//        e.printStackTrace();
+//      }
     }
   }
 
@@ -438,6 +498,7 @@ public class Notebook {
         logger.error("Error", e);
         info.put("cron", "Scheduler Exception");
       }
+      
     }
   }
 
