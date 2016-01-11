@@ -1,0 +1,25 @@
+# -----------------------------------------
+#  Set Env
+# -----------------------------------------
+IMAGE:
+    VERSION:0.1
+
+JDK:
+    VERSION:1.7.0
+
+HADOOP:
+    VERSION:2.3.0
+
+SPARK:
+    VERSION:1.6.0 1.5.2 1.4.1 1.3.1 1.2.1 1.1.1
+
+# -----------------------------------------
+#  Set parallel jobs
+#   - Max   : 4
+#   - Range : 1 ~ 4
+# -----------------------------------------
+BUILD_JOB:
+    1:spark_mesos
+    2:spark_standalone
+    3:spark_yarn
+    4:none
