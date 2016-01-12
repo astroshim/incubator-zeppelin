@@ -20,6 +20,3 @@ SPARK:
 # -----------------------------------------
 BUILD_JOB:
     1:spark_mesos
-    2:spark_standalone
-    3:spark_yarn
-    4:none
