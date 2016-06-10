@@ -203,6 +203,9 @@ public class NotebookServer extends WebSocketServlet implements
           case CHECKPOINT_NOTEBOOK:
             checkpointNotebook(conn, notebook, messagereceived);
             break;
+          case LIST_CREDENTIAL:
+            sendCredentialInfo(conn, userAndRoles, messagereceived);
+            break;
           default:
             break;
       }
@@ -439,6 +442,21 @@ public class NotebookServer extends WebSocketServlet implements
       conn.send(serializeMessage(new Message(OP.NOTE).put("note", note)));
       sendAllAngularObjects(note, conn);
     }
+  }
+
+  private void sendCredentialInfo(NotebookSocket conn, HashSet<String> userAndRoles, 
+      Message fromMessage) throws IOException {
+
+    LOG.info("New operation from ----> {} : {} ", conn.getRequest().getRemoteAddr(),
+            conn.getRequest().getRemotePort());
+
+    List<Map<String, String>> credentialInfo = new LinkedList<>();
+    Map<String, String> info = new HashMap<>();
+    info.put("id", "1-1");
+    info.put("name", "2-1");
+    credentialInfo.add(info);
+
+    conn.send(serializeMessage(new Message(OP.CREDENTIAL_INFO).put("note", credentialInfo)));
   }
 
   private void sendHomeNote(NotebookSocket conn, HashSet<String> userAndRoles,

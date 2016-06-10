@@ -111,10 +111,13 @@ public class Message {
     CONFIGURATIONS_INFO, // [s-c] all key/value pairs of configurations
                   // @param settings serialized Map<String, String> object
 
-    CHECKPOINT_NOTEBOOK     // [c-s] checkpoint notebook to storage repository
+    CHECKPOINT_NOTEBOOK,     // [c-s] checkpoint notebook to storage repository
                             // @param noteId
                             // @param checkpointName
 
+    LIST_CREDENTIAL, // [c-s] ask credential list
+    CREDENTIAL_INFO // [s-c] all of credential list
+                // @param credential serialized List<Credential> object
   }
 
   public OP op;

@@ -163,8 +163,11 @@ angular.module('zeppelinWebApp').service('websocketMsgSrv', function($rootScope,
 
     isConnected: function(){
       return websocketEvents.isConnected();
-    }
+    },
 
+    getCredentialList: function() {
+      websocketEvents.sendNewEvent({op: 'LIST_CREDENTIAL'});
+    }
   };
 
 });

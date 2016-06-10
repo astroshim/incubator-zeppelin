@@ -15,7 +15,7 @@
 'use strict';
 
 angular.module('zeppelinWebApp').controller('CredentialCtrl', function($scope, $route, $routeParams, $location, $rootScope,
-                                                                         $http, baseUrlSrv) {
+                                                                         $http, baseUrlSrv, websocketMsgSrv) {
   $scope._ = _;
 
   $scope.updateCredentials = function() {
@@ -37,4 +37,12 @@ angular.module('zeppelinWebApp').controller('CredentialCtrl', function($scope, $
     });
   };
 
+  $scope.init = function() {
+    console.log('--------->');
+    websocketMsgSrv.getCredentialList();
+  };
+
+  $scope.$on("credentialInfo", function(event, data) {
+    console.log('credentialInfo --------->', data);
+  });
 });
