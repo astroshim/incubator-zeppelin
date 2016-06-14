@@ -61,6 +61,18 @@ public class Credentials {
   }
 
   public void putUserCredentials(String username, UserCredentials uc) throws IOException {
+    LOG.info("putUserCredentials username:{}", username);
+
+    UserCredentials tmp = getUserCredentials(username);
+    LOG.info("putUserCredentials get===>:{}", tmp);
+
+    credentialsMap.put(username, uc);
+    if (credentialsPersist) {
+      saveToFile();
+    }
+  }
+
+  public void removeUserCredentials(String username, UserCredentials uc) throws IOException {
     credentialsMap.put(username, uc);
     if (credentialsPersist) {
       saveToFile();
@@ -103,6 +115,7 @@ public class Credentials {
       info.credentialsMap = credentialsMap;
       jsonString = gson.toJson(info);
     }
+    LOG.info("jsonString : {}", jsonString);
 
     try {
       if (!credentialsFile.exists()) {

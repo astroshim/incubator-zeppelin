@@ -75,4 +75,42 @@ public class CredentialRestApi {
     return new JsonResponse(Status.OK, "", "").build();
   }
 
+  /**
+   * Get Credential list REST API
+   * @param
+   * @return JSON with status.OK
+   * @throws IOException, IllegalArgumentException
+   */
+  @GET
+  public Response getCredentials(String message) throws 
+      IOException, IllegalArgumentException {
+    Map<String, String> messageMap = gson.fromJson(message,
+            new TypeToken<Map<String, String>>(){}.getType());
+
+    String user = SecurityUtils.getPrincipal();
+    logger.info("getCredentials credentials for user {} ", user);
+    UserCredentials uc = credentials.getUserCredentials(user);
+    return new JsonResponse(Status.OK, uc).build();
+  }
+
+  /**
+   * Remove Credential REST API
+   * @param
+   * @return JSON with status.OK
+   * @throws IOException, IllegalArgumentException
+   */
+  @DELETE
+  public Response removeCredentials(String message) throws 
+      IOException, IllegalArgumentException {
+    Map<String, String> messageMap = gson.fromJson(message,
+            new TypeToken<Map<String, String>>(){}.getType());
+
+    String entity = messageMap.get("entity");
+    String user = SecurityUtils.getPrincipal();
+
+    logger.info("removeCredentials credentials for user {} entity {}", user, entity);
+    UserCredentials uc = credentials.getUserCredentials(user);
+    return new JsonResponse(Status.OK, uc).build();
+  }
+
 }
