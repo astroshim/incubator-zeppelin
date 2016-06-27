@@ -22,6 +22,25 @@ angular.module('zeppelinWebApp').controller('InterpreterCtrl', function($scope, 
   $scope.showAddNewSetting = false;
   $scope.showRepositoryInfo = false;
   $scope._ = _;
+  $scope.urlRegex = /(http|https|file):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:\/~+#-]*[\w@?^=%&amp;\/~+#-])?/;
+
+  $scope.initRepositorySettings = function(){
+    console.log('myController called2222222');
+//    $scope.newRepoSetting.id = '';
+//    $scope.newRepoSetting.url = '';
+//    $scope.newRepoSetting.username = '';
+//    $scope.newRepoSetting.url = '';
+
+/*
+    $scope.newRepoSetting = {
+      id: undefined,
+      url: '',
+      snapshot: false,
+      username: undefined,
+      password: undefined
+    };
+*/
+  }
 
   var getInterpreterSettings = function() {
     $http.get(baseUrlSrv.getRestApiBase()+'/interpreter/setting').
@@ -388,13 +407,15 @@ angular.module('zeppelinWebApp').controller('InterpreterCtrl', function($scope, 
   };
 
   $scope.resetNewRepositorySetting = function() {
+console.log('resetNewRepositorySetting !!!!!!!1 : ', $scope.newRepoSetting);
     $scope.newRepoSetting = {
-      id: undefined,
+      id: '',
       url: undefined,
       snapshot: false,
-      username: undefined,
-      password: undefined
+      username: '',
+      password: ''
     };
+//$scope.newRepoSetting.url = '';
   };
 
   var getRepositories = function() {
@@ -409,6 +430,12 @@ angular.module('zeppelinWebApp').controller('InterpreterCtrl', function($scope, 
 
   $scope.addNewRepository = function() {
     var request = angular.copy($scope.newRepoSetting);
+
+console.log('add new repository! ', request);
+    if (_.isEmpty(request.url)) {
+        console.log('eeeeeeeeeeeeeeeeee');
+        return;
+    }
 
     $http.post(baseUrlSrv.getRestApiBase() + '/interpreter/repository', request).
       success(function(data, status, headers, config) {
