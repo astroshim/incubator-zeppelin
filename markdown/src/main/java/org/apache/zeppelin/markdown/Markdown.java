@@ -89,6 +89,7 @@ public class Markdown extends Interpreter {
 
   @Override
   public List<InterpreterCompletion> completion(String buf, int cursor) {
+    logger.info("called markdown completion!!! {}, {}", buf, cursor);
     return null;
   }
 }

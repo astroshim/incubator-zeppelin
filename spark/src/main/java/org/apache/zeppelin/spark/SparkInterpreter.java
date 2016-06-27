@@ -681,6 +681,8 @@ public class SparkInterpreter extends Interpreter {
 
     String resultCompletionText = "";
     String completionScriptText = "";
+
+    logger.info("spark interpreter getCompletionTargetString ==>{}, txt={}", cursor, text);
     try {
       completionScriptText = text.substring(0, cursor);
     }

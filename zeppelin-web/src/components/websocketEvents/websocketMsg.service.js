@@ -119,6 +119,7 @@ angular.module('zeppelinWebApp').service('websocketMsgSrv', function($rootScope,
     },
 
     completion: function(paragraphId, buf, cursor) {
+      console.log('msg cursor :', cursor);
       websocketEvents.sendNewEvent({
         op : 'COMPLETION',
         data : {
