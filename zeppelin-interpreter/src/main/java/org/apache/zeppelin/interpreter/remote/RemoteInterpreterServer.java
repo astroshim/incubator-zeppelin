@@ -342,6 +342,7 @@ public class RemoteInterpreterServer
 
         // data from context.out is prepended to InterpreterResult if both defined
         String message = "";
+        logger.info("RemoteinterpreterServer job runnnnnnnnnnnnnnnnnnnnnn");
 
         context.out.flush();
         InterpreterResult.Type outputType = context.out.getType();
@@ -449,11 +450,13 @@ public class RemoteInterpreterServer
     return new InterpreterOutput(new InterpreterOutputListener() {
       @Override
       public void onAppend(InterpreterOutput out, byte[] line) {
+        logger.info("###  createInterpreterOutput onAppend {}", new String(line));
         eventClient.onInterpreterOutputAppend(noteId, paragraphId, new String(line));
       }
 
       @Override
       public void onUpdate(InterpreterOutput out, byte[] output) {
+        logger.info("###  createInterpreterOutput onUpdate {}", new String(output));
         eventClient.onInterpreterOutputUpdate(noteId, paragraphId, new String(output));
       }
     });

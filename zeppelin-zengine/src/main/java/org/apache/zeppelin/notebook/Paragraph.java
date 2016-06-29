@@ -206,6 +206,18 @@ public class Paragraph extends Job implements Serializable, Cloneable {
     return getRepl(getRequiredReplName());
   }
 
+  public List<InterpreterCompletion> getInterpreterCompletion(String buffer) {
+    List<InterpreterCompletion> completion = null;
+    if (buffer.startsWith("%")) {
+      completion = new LinkedList();
+      for (InterpreterSetting intp: getNoteReplLoader().getInterpreterSettings()){
+        logger().info("interpreter name=>{}, {}", intp.getName(), intp.getGroup());
+        completion.add(new InterpreterCompletion(intp.getGroup(), intp.getGroup()));
+      }
+    }
+    return completion;
+  }
+
   public List<InterpreterCompletion> completion(String buffer, int cursor) {
     String replName = getRequiredReplName(buffer);
     if (replName != null && cursor > replName.length()) {
@@ -213,10 +225,15 @@ public class Paragraph extends Job implements Serializable, Cloneable {
     }
     String body = getScriptBody(buffer);
     Interpreter repl = getRepl(replName);
+
+    logger().info("repl : {}, cursor : {}, buffer : {}", repl, cursor, buffer);
+
+    if (cursor == 0) {
+      return getInterpreterCompletion(buffer);
+    }
     if (repl == null) {
       return null;
     }
-
     List completion = repl.completion(body, cursor);
     return completion;
   }
@@ -273,6 +290,7 @@ public class Paragraph extends Job implements Serializable, Cloneable {
       script = Input.getSimpleQuery(settings.getParams(), scriptBody);
     }
     logger().debug("RUN : " + script);
+    logger().info("RUN script: " + script);
     try {
       InterpreterContext context = getInterpreterContext();
       InterpreterContext.set(context);
@@ -293,10 +311,14 @@ public class Paragraph extends Job implements Serializable, Cloneable {
         message = new String(interpreterOutput);
       }
 
+      logger().info("RUN result message: {}, ret: {}", message, ret);
+
       if (message.isEmpty()) {
         return ret;
       } else {
         String interpreterResultMessage = ret.message();
+        logger().info("RUN interpreterResultMessage message: " + interpreterResultMessage);
+
         if (interpreterResultMessage != null && !interpreterResultMessage.isEmpty()) {
           message += interpreterResultMessage;
           return new InterpreterResult(ret.code(), ret.type(), message);
@@ -370,12 +392,15 @@ public class Paragraph extends Job implements Serializable, Cloneable {
             new InterpreterOutput(new InterpreterOutputListener() {
               @Override
               public void onAppend(InterpreterOutput out, byte[] line) {
+
+                logger().info("onAppend -------------->" + new String(line));
                 updateParagraphResult(out);
                 ((ParagraphJobListener) getListener()).onOutputAppend(self, out, new String(line));
               }
 
               @Override
               public void onUpdate(InterpreterOutput out, byte[] output) {
+                logger().info("onUpdate -------------->" + new String(output));
                 updateParagraphResult(out);
                 ((ParagraphJobListener) getListener()).onOutputUpdate(self, out,
                         new String(output));
@@ -391,6 +416,7 @@ public class Paragraph extends Job implements Serializable, Cloneable {
                   logger().error(e.getMessage(), e);
                   t = e;
                 }
+                logger().info("updateParagraphResult setReturn-------------->" + message);
                 setReturn(new InterpreterResult(Code.SUCCESS, out.getType(), message), t);
               }
             }));
@@ -427,6 +453,7 @@ public class Paragraph extends Job implements Serializable, Cloneable {
   }
 
   public void setReturn(InterpreterResult value, Throwable t) {
+    logger().info("updateParagraphResult -------------->" + value.toString());
     setResult(value);
     setException(t);
   }

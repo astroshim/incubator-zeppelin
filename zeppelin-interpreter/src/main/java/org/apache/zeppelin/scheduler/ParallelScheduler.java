@@ -171,6 +171,7 @@ public class ParallelScheduler implements Scheduler {
       }
 
       if (listener != null) {
+        LOGGER.info("INNNNN ParallelScheduler! jobFinished ");
         listener.jobFinished(scheduler, job);
       }
 

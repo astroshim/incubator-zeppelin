@@ -191,7 +191,7 @@ public class PythonInterpreter extends Interpreter {
     } catch (IOException e) {
       LOG.error("Error when sending commands to python process", e);
     }
-    //logger.info("Got : \n" + output);
+    LOG.info("----->Got : \n" + output);
     return output;
   }
 

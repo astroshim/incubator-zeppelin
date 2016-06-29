@@ -177,6 +177,10 @@ public abstract class Job {
       this.exception = null;
       errorMessage = null;
       dateFinished = new Date();
+
+
+      LOGGER.info("PPPPPPPPPPPPPPPPPPPPPP result : {}", result);
+
       progressUpdator.terminate();
     } catch (NullPointerException e) {
       LOGGER.error("Job failed", e);

@@ -87,6 +87,7 @@ public class RemoteScheduler implements Scheduler {
       while (!jobRunner.isJobSubmittedInRemote()) {
         synchronized (queue) {
           try {
+            logger.info("Waitttttttttttttttt");
             queue.wait(500);
           } catch (InterruptedException e) {
             logger.error("Exception in RemoteScheduler while jobRunner.isJobSubmittedInRemote " +
@@ -325,10 +326,12 @@ public class RemoteScheduler implements Scheduler {
       if (listener != null) {
         listener.jobStarted(scheduler, job);
       }
+
       job.run();
 
       jobExecuted = true;
       jobSubmittedRemotely = true;
+      logger.info("1. GETTTTTTTTTTTTTTTTT result : {}", job.getReturn());
 
       jobStatusPoller.shutdown();
       try {
@@ -348,6 +351,7 @@ public class RemoteScheduler implements Scheduler {
       job.setStatus(lastStatus);
 
       if (listener != null) {
+        logger.info("INNNNN RemoteSchedular! jobFinished {}", job.result);
         listener.jobFinished(scheduler, job);
       }
 

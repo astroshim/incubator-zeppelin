@@ -157,11 +157,13 @@ angular.module('zeppelinWebApp')
   $scope.renderText = function() {
     var retryRenderer = function() {
 
+      console.log('======================> renderText!');
       var textEl = angular.element('#p' + $scope.paragraph.id + '_text');
       if (textEl.length) {
         // clear all lines before render
         $scope.clearTextOutput();
 
+        console.log('======================> renderText!', $scope.paragraph);
         if ($scope.paragraph.result && $scope.paragraph.result.msg) {
           $scope.appendTextOutput($scope.paragraph.result.msg);
         }
@@ -371,7 +373,8 @@ angular.module('zeppelinWebApp')
 
       var statusChanged = (data.paragraph.status !== $scope.paragraph.status);
 
-      //console.log("updateParagraph oldData %o, newData %o. type %o -> %o, mode %o -> %o", $scope.paragraph, data, oldType, newType, oldGraphMode, newGraphMode);
+console.log('<-----------------------------------------{}', resultRefreshed);
+      console.log("updateParagraph oldData %o, newData %o. type %o -> %o, mode %o -> %o", $scope.paragraph, data, oldType, newType, oldGraphMode, newGraphMode);
 
       if ($scope.paragraph.text !== data.paragraph.text) {
         if ($scope.dirtyText) {         // check if editor has local update
@@ -412,6 +415,8 @@ angular.module('zeppelinWebApp')
         $scope.paragraph.config = data.paragraph.config;
       }
 
+//resultRefreshed = true;
+console.log('newType ---> {}, {}', newType, resultRefreshed);
       if (newType === 'TABLE') {
         $scope.loadTableData($scope.paragraph.result);
         if (oldType !== 'TABLE' || resultRefreshed) {
@@ -429,6 +434,7 @@ angular.module('zeppelinWebApp')
       } else if (newType === 'ANGULAR' && resultRefreshed) {
         $scope.renderAngular();
       } else if (newType === 'TEXT' && resultRefreshed) {
+      //} else if (newType === 'TEXT' ) {
         $scope.renderText();
       }
 
@@ -450,6 +456,7 @@ angular.module('zeppelinWebApp')
   $scope.$on('appendParagraphOutput', function(event, data) {
     if ($scope.paragraph.id === data.paragraphId) {
       if ($scope.flushStreamingOutput) {
+    console.log('################## appendParagraphOutput ---> ', data);
         $scope.clearTextOutput();
         $scope.flushStreamingOutput = false;
       }
@@ -459,6 +466,7 @@ angular.module('zeppelinWebApp')
 
   $scope.$on('updateParagraphOutput', function(event, data) {
     if ($scope.paragraph.id === data.paragraphId) {
+    console.log('################## updateParagraphOutput ---> ', data);
       $scope.clearTextOutput();
       $scope.appendTextOutput(data.data);
     }

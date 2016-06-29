@@ -129,13 +129,12 @@ public class SchedulerFactory implements SchedulerListener {
   @Override
   public void jobStarted(Scheduler scheduler, Job job) {
     logger.info("Job " + job.getJobName() + " started by scheduler " + scheduler.getName());
-
   }
 
   @Override
   public void jobFinished(Scheduler scheduler, Job job) {
     logger.info("Job " + job.getJobName() + " finished by scheduler " + scheduler.getName());
-
+    logger.info("result : " + job.getReturn());
   }
 
 
