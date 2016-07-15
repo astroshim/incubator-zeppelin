@@ -739,6 +739,7 @@ public class SparkInterpreter extends Interpreter {
 
   @Override
   public List<InterpreterCompletion> completion(String buf, int cursor) {
+    logger.info("----> spark completion called");
     if (buf.length() < cursor) {
       cursor = buf.length();
     }
@@ -755,7 +756,7 @@ public class SparkInterpreter extends Interpreter {
       List<InterpreterCompletion> completions = new LinkedList<InterpreterCompletion>();
 
       for (String candidate : candidates) {
-        completions.add(new InterpreterCompletion(candidate, candidate));
+        completions.add(new InterpreterCompletion(candidate, candidate, "Spark"));
       }
 
       return completions;

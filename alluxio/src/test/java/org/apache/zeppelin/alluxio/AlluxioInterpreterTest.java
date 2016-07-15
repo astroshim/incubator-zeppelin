@@ -78,21 +78,21 @@ public class AlluxioInterpreterTest {
   @Test
   public void testCompletion() {
     List expectedResultOne = Arrays.asList(
-      new InterpreterCompletion("cat", "cat"),
-      new InterpreterCompletion("chgrp", "chgrp"),
-      new InterpreterCompletion("chmod", "chmod"),
-      new InterpreterCompletion("chown", "chown"),
-      new InterpreterCompletion("copyFromLocal", "copyFromLocal"),
-      new InterpreterCompletion("copyToLocal", "copyToLocal"),
-      new InterpreterCompletion("count", "count"),
-      new InterpreterCompletion("createLineage", "createLineage"));
+      new InterpreterCompletion("cat", "cat", "Alluxio"),
+      new InterpreterCompletion("chgrp", "chgrp", "Alluxio"),
+      new InterpreterCompletion("chmod", "chmod", "Alluxio"),
+      new InterpreterCompletion("chown", "chown", "Alluxio"),
+      new InterpreterCompletion("copyFromLocal", "copyFromLocal", "Alluxio"),
+      new InterpreterCompletion("copyToLocal", "copyToLocal", "Alluxio"),
+      new InterpreterCompletion("count", "count", "Alluxio"),
+      new InterpreterCompletion("createLineage", "createLineage", "Alluxio"));
     List expectedResultTwo = Arrays.asList(
-      new InterpreterCompletion("copyFromLocal", "copyFromLocal"),
-      new InterpreterCompletion("copyToLocal", "copyToLocal"),
-      new InterpreterCompletion("count", "count"));
+      new InterpreterCompletion("copyFromLocal", "copyFromLocal", "Alluxio"),
+      new InterpreterCompletion("copyToLocal", "copyToLocal", "Alluxio"),
+      new InterpreterCompletion("count", "count", "Alluxio"));
     List expectedResultThree = Arrays.asList(
-      new InterpreterCompletion("copyFromLocal", "copyFromLocal"),
-      new InterpreterCompletion("copyToLocal", "copyToLocal"));
+      new InterpreterCompletion("copyFromLocal", "copyFromLocal", "Alluxio"),
+      new InterpreterCompletion("copyToLocal", "copyToLocal", "Alluxio"));
     List expectedResultNone = new ArrayList<String>();
 
     List<InterpreterCompletion> resultOne = alluxioInterpreter.completion("c", 0);

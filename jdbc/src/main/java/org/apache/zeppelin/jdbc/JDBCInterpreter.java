@@ -115,7 +115,7 @@ public class JDBCInterpreter extends Interpreter {
   private static final Function<CharSequence, InterpreterCompletion> sequenceToStringTransformer =
       new Function<CharSequence, InterpreterCompletion>() {
         public InterpreterCompletion apply(CharSequence seq) {
-          return new InterpreterCompletion(seq.toString(), seq.toString());
+          return new InterpreterCompletion(seq.toString(), seq.toString(), "JDBC");
         }
       };
 

@@ -435,16 +435,21 @@ public class RemoteInterpreter extends Interpreter {
   @Override
   public List<InterpreterCompletion> completion(String buf, int cursor) {
     RemoteInterpreterProcess interpreterProcess = getInterpreterProcess();
+    logger.info("1.RemoteInterpreter--> buf:{}, cursor:{}", buf, cursor);
+
     Client client = null;
     try {
       client = interpreterProcess.getClient();
     } catch (Exception e1) {
       throw new InterpreterException(e1);
     }
+    logger.info("2.RemoteInterpreter--> buf:{}, cursor:{},c:{}", buf, cursor, client);
 
     boolean broken = false;
     try {
+      logger.info("3.RemoteInterpreter--> buf:{}, cursor:{},c:{}", buf, cursor, className);
       List completion = client.completion(noteId, className, buf, cursor);
+      logger.info("4.RemoteInterpreter--> buf:{}, cursor:{}", buf, cursor);
       return completion;
     } catch (TException e) {
       broken = true;

@@ -118,8 +118,12 @@ public class LazyOpenInterpreter
 
   @Override
   public List<InterpreterCompletion> completion(String buf, int cursor) {
+    logger.info("1.LazyOpenInterpreter--> buf:{}, cursor:{}", buf, cursor);
     open();
+    logger.info("2.LazyOpenInterpreter--> buf:{}, cursor:{},intp:{}",
+      buf, cursor, intp);
     List completion = intp.completion(buf, cursor);
+    logger.info("3.LazyOpenInterpreter--> buf:{}, cursor:{}", buf, cursor);
     return completion;
   }
 

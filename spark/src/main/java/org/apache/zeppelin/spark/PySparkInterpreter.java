@@ -287,6 +287,7 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
   Integer pythonScriptInitializeNotifier = new Integer(0);
 
   public void onPythonScriptInitialized() {
+    logger.info("----> onPythonScriptInitialized");
     synchronized (pythonScriptInitializeNotifier) {
       pythonScriptInitialized = true;
       pythonScriptInitializeNotifier.notifyAll();
@@ -299,17 +300,21 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
 
   @Override
   public InterpreterResult interpret(String st, InterpreterContext context) {
+    logger.info("----> interpret");
     SparkInterpreter sparkInterpreter = getSparkInterpreter();
+    logger.info("----> interpret sparkInterpreter:{}", sparkInterpreter);
     if (sparkInterpreter.getSparkVersion().isUnsupportedVersion()) {
       return new InterpreterResult(Code.ERROR, "Spark "
           + sparkInterpreter.getSparkVersion().toString() + " is not supported");
     }
 
+    logger.info("----> interpret pythonscriptRunning:{}", pythonscriptRunning);
     if (!pythonscriptRunning) {
       return new InterpreterResult(Code.ERROR, "python process not running"
           + outputStream.toString());
     }
 
+    logger.info("----> interpret pythonscriptRunning:{}", pythonscriptRunning);
     outputStream.setInterpreterOutput(context.out);
 
     synchronized (pythonScriptInitializeNotifier) {
@@ -318,6 +323,8 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
           && pythonscriptRunning
           && System.currentTimeMillis() - startTime < 10 * 1000) {
         try {
+          logger.info("----> interpret pythonScriptInitializeNotifier.wait(1000):{}"
+            , pythonscriptRunning);
           pythonScriptInitializeNotifier.wait(1000);
         } catch (InterruptedException e) {
         }
@@ -333,17 +340,21 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
     }
 
 
+    logger.info("----> interpret failed to start pyspark:{}", pythonscriptRunning);
     if (pythonscriptRunning == false) {
       // python script failed to initialize and terminated
       return new InterpreterResult(Code.ERROR, "failed to start pyspark"
           + errorMessage);
     }
+    logger.info("----> interpret pyspark is not responding:{}", pythonscriptRunning);
     if (pythonScriptInitialized == false) {
       // timeout. didn't get initialized message
       return new InterpreterResult(Code.ERROR, "pyspark is not responding "
           + errorMessage);
     }
 
+    logger.info("----> interpret pyspark not supported:{}",
+      sparkInterpreter.getSparkVersion().isPysparkSupported());
     if (!sparkInterpreter.getSparkVersion().isPysparkSupported()) {
       return new InterpreterResult(Code.ERROR, "pyspark "
           + sparkInterpreter.getSparkContext().version() + " is not supported");
@@ -402,29 +413,52 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
 
   @Override
   public List<InterpreterCompletion> completion(String buf, int cursor) {
+
+    logger.info("----> pyspark completion called");
+
     if (buf.length() < cursor) {
       cursor = buf.length();
     }
     String completionString = getCompletionTargetString(buf, cursor);
+    logger.info("----> pyspark completion called completionString:{}", completionString);
     String completionCommand = "completion.getCompletion('" + completionString + "')";
+    logger.info("----> pyspark completion called completionCommand:{}", completionCommand);
 
     //start code for completion
     SparkInterpreter sparkInterpreter = getSparkInterpreter();
+    logger.info("----> pyspark completion called sparkInterpreter:{}", sparkInterpreter);
     if (sparkInterpreter.getSparkVersion().isUnsupportedVersion() == false
             && pythonscriptRunning == false) {
       return new LinkedList<>();
     }
 
     pythonInterpretRequest = new PythonInterpretRequest(completionCommand, "");
+    logger.info("----> pyspark completion called pythonInterpretRequest:{}",
+      pythonInterpretRequest);
     statementOutput = null;
 
     synchronized (statementSetNotifier) {
+      logger.info("----> pyspark completion call statementSetNotifier:{}", statementSetNotifier);
       statementSetNotifier.notify();
     }
 
+    logger.info("astro____ pythonscriptRunning:{},pythonScriptInitialized:{}",
+      pythonscriptRunning, pythonScriptInitialized);
     synchronized (statementFinishedNotifier) {
+/*
+      long startTime = System.currentTimeMillis();
+      while (statementOutput == null
+          && pythonScriptInitialized == false
+          && pythonscriptRunning
+          && System.currentTimeMillis() - startTime < 10 * 1000
+        ) {
+*/
       while (statementOutput == null) {
         try {
+          logger.info("----> pyspark completion call wait " +
+            "pythonscriptRunning:{},pythonScriptInitialized:{}",
+            pythonscriptRunning, pythonScriptInitialized);
+
           statementFinishedNotifier.wait(1000);
         } catch (InterruptedException e) {
           // not working
@@ -444,7 +478,7 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
     String[] completionList = gson.fromJson(completionResult.message(), String[].class);
     List<InterpreterCompletion> results = new LinkedList<>();
     for (String name: completionList) {
-      results.add(new InterpreterCompletion(name, name));
+      results.add(new InterpreterCompletion(name, name, "PySpark"));
     }
     return results;
   }

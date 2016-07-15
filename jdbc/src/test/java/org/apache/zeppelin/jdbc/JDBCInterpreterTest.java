@@ -246,7 +246,7 @@ public class JDBCInterpreterTest extends BasicJDBCTestCaseAdapter {
 
     List<InterpreterCompletion> completionList = jdbcInterpreter.completion("SEL", 0);
     
-    InterpreterCompletion correctCompletionKeyword = new InterpreterCompletion("SELECT", "SELECT");
+    InterpreterCompletion correctCompletionKeyword = new InterpreterCompletion("SELECT", "SELECT", "JDBC");
 
     assertEquals(2, completionList.size());
     assertEquals(true, completionList.contains(correctCompletionKeyword));

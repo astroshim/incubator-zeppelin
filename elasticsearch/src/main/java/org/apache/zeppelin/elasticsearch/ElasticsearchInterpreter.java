@@ -250,7 +250,7 @@ public class ElasticsearchInterpreter extends Interpreter {
 
     for (String cmd : COMMANDS) {
       if (cmd.toLowerCase().contains(s)) {
-        suggestions.add(new InterpreterCompletion(cmd, cmd));
+        suggestions.add(new InterpreterCompletion(cmd, cmd, "Elasticsearch"));
       }
     }
     return suggestions;

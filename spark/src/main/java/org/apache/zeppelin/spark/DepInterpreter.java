@@ -293,7 +293,7 @@ public class DepInterpreter extends Interpreter {
       List<InterpreterCompletion> completions = new LinkedList<InterpreterCompletion>();
 
       for (String candidate : candidates) {
-        completions.add(new InterpreterCompletion(candidate, candidate));
+        completions.add(new InterpreterCompletion(candidate, candidate, "Dep"));
       }
 
       return completions;

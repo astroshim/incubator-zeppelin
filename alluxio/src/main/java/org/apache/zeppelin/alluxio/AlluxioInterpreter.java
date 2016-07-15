@@ -176,7 +176,7 @@ public class AlluxioInterpreter extends Interpreter {
     List<InterpreterCompletion>  voices = new LinkedList<>();
     for (String command : keywords) {
       if (command.startsWith(lastWord)) {
-        voices.add(new InterpreterCompletion(command, command));
+        voices.add(new InterpreterCompletion(command, command, "Alluxio"));
       }
     }
     return voices;

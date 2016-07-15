@@ -208,6 +208,21 @@ public class Paragraph extends Job implements Serializable, Cloneable {
     return getRepl(getRequiredReplName());
   }
 
+  public List<InterpreterCompletion> getInterpreterCompletion() {
+    List<InterpreterCompletion> completion = new LinkedList();
+    for (InterpreterSetting intp: factory.getInterpreterSettings(note.getId())){
+      logger().info("#####> {}", intp.getGroup());
+      List<InterpreterSetting.InterpreterInfo> intInfo = intp.getInterpreterInfos();
+      if (intInfo.size() > 1) {
+        for (InterpreterSetting.InterpreterInfo info : intInfo){
+          String name = intp.getGroup() + "." + info.getName();
+          logger().info("   #####> {}", name);
+        }
+      }
+    }
+    return completion;
+  }
+
   public List<InterpreterCompletion> completion(String buffer, int cursor) {
     String replName = getRequiredReplName(buffer);
     if (replName != null && cursor > replName.length()) {
@@ -218,6 +233,8 @@ public class Paragraph extends Job implements Serializable, Cloneable {
     if (repl == null) {
       return null;
     }
+
+    getInterpreterCompletion();
 
     List completion = repl.completion(body, cursor);
     return completion;
