@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Manual upgrade procedure for Zeppelin"
+title: "Apache Zeppelin on Spark cluster mode"
 description: ""
 group: install
 ---
