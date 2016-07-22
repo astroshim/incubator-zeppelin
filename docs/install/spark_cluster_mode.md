@@ -39,7 +39,7 @@ You can find docker script files under `scripts/docker/spark-cluster-managers`.
 
 ```
 cd $ZEPPELIN_HOME/scripts/docker/spark-cluster-managers
-docker build -t "spark_standalone"
+docker build -t "spark_standalone" .
 ```
 
 ### 2. Run docker
@@ -63,5 +63,12 @@ Set Spark master as `spark://localhost:7077` in Zeppelin **Interpreters** settin
 ### 4. Run Zeppelin with Spark interpreter
 After running single paragraph with Spark interpreter in Zeppelin, browse `https://localhost:8080` and check whether Spark cluster is running well or not.
 
-<!--[Spark web UI screenshot image]-->
+<img src="../assets/themes/zeppelin/img/docs-img/spark_ui.png" />
+
+You can also simply verify that Spark is running well in Docker with below command.
+
+```
+ps -ef | grep spark
+```
+
 
