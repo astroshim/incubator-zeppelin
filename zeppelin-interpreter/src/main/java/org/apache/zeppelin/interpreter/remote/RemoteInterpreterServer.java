@@ -135,14 +135,10 @@ public class RemoteInterpreterServer
   public static void main(String[] args)
       throws TTransportException, InterruptedException {
 
-    int port;
-    if (args.length <= 0) {
-      port = ZeppelinDevServer.DEFAULT_TEST_INTERPRETER_PORT;
-    }
-    else {
+    int port = ZeppelinDevServer.DEFAULT_TEST_INTERPRETER_PORT;
+    if (args.length > 0) {
       port = Integer.parseInt(args[0]);
     }
-    //int port = Integer.parseInt(args[0]);
     RemoteInterpreterServer remoteInterpreterServer = new RemoteInterpreterServer(port);
     remoteInterpreterServer.start();
     remoteInterpreterServer.join();
