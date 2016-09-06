@@ -37,13 +37,7 @@ jQuery.when(
                value : parseFloat(row[series])
            }
        })
-
-       console.log('values--->', values);
    });
-
-   console.log('end of foreach');
-
-
 
     // split the data set into ohlc and volume
     var ohlc = [],
