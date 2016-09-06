@@ -20,7 +20,6 @@ jQuery.when(
     jQuery.getScript('https://code.highcharts.com/stock/highstock.js'),
     jQuery.getScript('https://code.highcharts.com/stock/modules/exporting.js'),
 
-
     //jQuery("#tschart_${paragraphId}").ready,
     jQuery('#highstock_' + $z.id).ready,
     jQuery.Deferred(function( deferred ){
@@ -29,6 +28,7 @@ jQuery.when(
 ).done(function(){
 
     var data = [];
+/*
     _.forEach($z.result.columnNames, function(col, series) {
        if (series == 0) return;
        var values = _.map($z.result.rows, function(row) {
@@ -37,7 +37,12 @@ jQuery.when(
                value : parseFloat(row[series])
            }
        })
+       data.push($z.result.rows);
    });
+*/
+   data = $z.result.rows;
+
+   console.log('parsing data is done. --> ', data);
 
     // split the data set into ohlc and volume
     var ohlc = [],
