@@ -97,10 +97,10 @@ Here are some examples with several options:
 ```
 # build with spark-2.0, scala-2.11
 ./dev/change_scala_version.sh 2.11
-mvn clean package -Pspark-2.0 -Phadoop-2.4 -Pyarn -Ppyspark -Psparkr -Pscala-2.11
+mvn clean package -Pspark-2.0 -Phadoop-2.4 -Psparkr -Pscala-2.11
 
 # build with spark-1.6, scala-2.10
-mvn clean package -Pspark-1.6 -Phadoop-2.4 -Pyarn -Ppyspark -Psparkr
+mvn clean package -Pspark-1.6 -Phadoop-2.4 -Psparkr
 
 # spark-cassandra integration
 mvn clean package -Pcassandra-spark-1.5 -Dhadoop.version=2.6.0 -Phadoop-2.6 -DskipTests
@@ -108,13 +108,11 @@ mvn clean package -Pcassandra-spark-1.5 -Dhadoop.version=2.6.0 -Phadoop-2.6 -Dsk
 # with CDH
 mvn clean package -Pspark-1.5 -Dhadoop.version=2.6.0-cdh5.5.0 -Phadoop-2.6 -Pvendor-repo -DskipTests
 
-# with MapR
-mvn clean package -Pspark-1.5 -Pmapr50 -DskipTests
 ```
 
 For further information about building from source, please see [README.md](https://github.com/apache/zeppelin/blob/master/README.md) in the Zeppelin repository.
 
-## Starting Apache Zeppelin from the Command Line
+## Starting Apache Zeppelin with Command Line
 #### Starting Apache Zeppelin
 
 On all platforms except for Windows:
@@ -130,6 +128,9 @@ bin\zeppelin.cmd
 ```
 
 After Zeppelin has started successfully, go to [http://localhost:8080](http://localhost:8080) with your web browser.
+
+Since Zeppelin supports both [local Spark mode](../interpreter/spark.html#local-spark-mode)(not for Windows) and [system provided Spark mode](../interpreter/spark.html#system-provided-spark-mode) for Spark interpreter, you'll be asked whether you want to download local Spark or not in this step. 
+For the more details, please check [this section](../interpreter/spark.html#configuration).
 
 #### Stopping Zeppelin
 
