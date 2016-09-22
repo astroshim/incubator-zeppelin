@@ -225,7 +225,7 @@ For configuration details check __`./conf`__ subdirectory.
 ### Setting SPARK_HOME and HADOOP_HOME
 
 Without `SPARK_HOME` and `HADOOP_HOME`, Zeppelin uses embedded Spark and Hadoop binaries downloaded when you start Zeppelin at the first time.
-The local Spark binary is under `ZEPPELIN_HOME/local-spark/`.
+The local Spark binary will be saved under `ZEPPELIN_HOME/local-spark/`.
 If you want to use system provided Spark and Hadoop, export `SPARK_HOME` and `HADOOP_HOME` in `zeppelin-env.sh`.
 You can use any supported version of spark without rebuilding Zeppelin.
 
