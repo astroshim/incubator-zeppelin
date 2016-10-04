@@ -199,19 +199,14 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
 
     try {
       Map env = EnvironmentUtils.getProcEnvironment();
-
-      logger.info("----> cmd : {}", cmd);
-      logger.info("----> env : {}", env);
-
-      //executor.execute(cmd, env, this);
-      int exitValue = executor.execute(cmd, env);
+      executor.execute(cmd, env, this);
+      /*int exitValue = executor.execute(cmd, env);
       logger.info("----> exitValue : {}", exitValue);
-
+      */
       pythonscriptRunning = true;
     } catch (IOException e) {
       throw new InterpreterException(e);
     }
-
 
     try {
       input.write("import sys, getopt\n".getBytes());
