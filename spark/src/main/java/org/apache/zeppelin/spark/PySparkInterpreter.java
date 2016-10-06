@@ -199,13 +199,14 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
 
     try {
       Map env = EnvironmentUtils.getProcEnvironment();
-
       executor.execute(cmd, env, this);
+      /*int exitValue = executor.execute(cmd, env);
+      logger.info("----> exitValue : {}", exitValue);
+      */
       pythonscriptRunning = true;
     } catch (IOException e) {
       throw new InterpreterException(e);
     }
-
 
     try {
       input.write("import sys, getopt\n".getBytes());
@@ -426,10 +427,9 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
     synchronized (statementFinishedNotifier) {
       long startTime = System.currentTimeMillis();
       while (statementOutput == null
-        && pythonScriptInitialized == false
         && pythonscriptRunning) {
         try {
-          if (System.currentTimeMillis() - startTime < MAX_TIMEOUT_SEC * 1000) {
+          if (System.currentTimeMillis() - startTime > MAX_TIMEOUT_SEC * 10000) {
             logger.error("pyspark completion didn't have response for {}sec.", MAX_TIMEOUT_SEC);
             break;
           }
@@ -450,6 +450,10 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
 
     Gson gson = new Gson();
     String[] completionList = gson.fromJson(completionResult.message(), String[].class);
+    if (completionList == null) {
+      return new LinkedList<>();
+    }
+
     List<InterpreterCompletion> results = new LinkedList<>();
     for (String name: completionList) {
       results.add(new InterpreterCompletion(name, name));
