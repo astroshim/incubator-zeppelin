@@ -111,6 +111,7 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
 
   @Override
   public void open() {
+    logger.info("astro pyspark interpreter execute!!");
     DepInterpreter depInterpreter = getDepInterpreter();
 
     // load libraries from Dependency Interpreter
@@ -151,6 +152,7 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
     }
 
     urls = urlList.toArray(urls);
+    logger.info("astro urls ====>{}" + urls.length);
 
     ClassLoader oldCl = Thread.currentThread().getContextClassLoader();
     try {
@@ -163,6 +165,7 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
     } finally {
       Thread.currentThread().setContextClassLoader(oldCl);
     }
+    logger.info("astro pyspark interpreter execute2!!");
   }
 
   private void createGatewayServerAndStartScript() {
@@ -178,7 +181,9 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
     CommandLine cmd = CommandLine.parse(getProperty("zeppelin.pyspark.python"));
     cmd.addArgument(scriptPath, false);
     cmd.addArgument(Integer.toString(port), false);
-    cmd.addArgument(Integer.toString(getSparkInterpreter().getSparkVersion().toNumber()), false);
+
+    cmd.addArgument(Integer.toString(SparkVersion.SPARK_2_0_0.toNumber()), false);
+    //cmd.addArgument(Integer.toString(getSparkInterpreter().getSparkVersion().toNumber()), false);
     executor = new DefaultExecutor();
     outputStream = new SparkOutputStream(logger);
     PipedOutputStream ps = new PipedOutputStream();
@@ -502,19 +507,29 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
   private SparkInterpreter getSparkInterpreter() {
     LazyOpenInterpreter lazy = null;
     SparkInterpreter spark = null;
+
+    logger.info("astro in getSparkInterpreter 1 {}", SparkInterpreter.class.getName());
+
+    //Interpreter p =
+    //getInterpreterInTheSameSessionByClassName("org.apache.zeppelin.spark.SparkInterpreter");
     Interpreter p = getInterpreterInTheSameSessionByClassName(SparkInterpreter.class.getName());
 
     while (p instanceof WrappedInterpreter) {
       if (p instanceof LazyOpenInterpreter) {
+        logger.info("astro in getSparkInterpreter 1-1 {}", p);
         lazy = (LazyOpenInterpreter) p;
       }
       p = ((WrappedInterpreter) p).getInnerInterpreter();
     }
+    logger.info("astro in getSparkInterpreter p={}", p);
     spark = (SparkInterpreter) p;
 
+    logger.info("astro in getSparkInterpreter 2 {}, {}", spark, lazy);
     if (lazy != null) {
+      logger.info("astro in getSparkInterpreter 2-1 {}", lazy);
       lazy.open();
     }
+    logger.info("astro in getSparkInterpreter 3");
     return spark;
   }
 

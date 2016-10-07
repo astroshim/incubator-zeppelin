@@ -334,6 +334,8 @@ public class SparkInterpreter extends Interpreter {
     Object builder = Utils.invokeStaticMethod(SparkSession, "builder");
     Utils.invokeMethod(builder, "config", new Class[]{ SparkConf.class }, new Object[]{ conf });
 
+    logger.info("astro builder --> {}", builder);
+
     if (useHiveContext()) {
       if (hiveClassesArePresent()) {
         Utils.invokeMethod(builder, "enableHiveSupport");
@@ -539,6 +541,8 @@ public class SparkInterpreter extends Interpreter {
 
   @Override
   public void open() {
+    logger.info("astro spark interpreter execute!!");
+
     // set properties and do login before creating any spark stuff for secured cluster
     if (getProperty("master").equals("yarn-client")) {
       System.setProperty("SPARK_YARN_MODE", "true");
