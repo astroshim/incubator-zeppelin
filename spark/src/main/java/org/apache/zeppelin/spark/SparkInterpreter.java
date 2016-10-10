@@ -337,18 +337,6 @@ public class SparkInterpreter extends Interpreter {
 
     setupConfForPySpark(conf);
 
-    logger.info("astro ################## env start 2#######################");
-    try {
-      for (Object key : EnvironmentUtils.getProcEnvironment().keySet()) {
-        logger.info("astro key : {}, value : {}", key,
-          EnvironmentUtils.getProcEnvironment().get(key));
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    logger.info("astro ################## env end #######################");
-
-
     setupConfForSparkR(conf);
     Class SparkSession = Utils.findClass("org.apache.spark.sql.SparkSession");
     Object builder = Utils.invokeStaticMethod(SparkSession, "builder");
@@ -624,17 +612,6 @@ public class SparkInterpreter extends Interpreter {
         }
       }
     }
-    logger.info("astro ################## env start 11#######################");
-    try {
-      for (Object key : EnvironmentUtils.getProcEnvironment().keySet()) {
-        logger.info("astro key : {}, value : {}", key,
-          EnvironmentUtils.getProcEnvironment().get(key));
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    logger.info("astro ################## env end #######################");
-
 
     if (Utils.isScala2_10()) {
       scala.collection.immutable.List<String> list =
@@ -714,16 +691,6 @@ public class SparkInterpreter extends Interpreter {
     }
     classpath += depInterpreterClasspath;
 
-    logger.info("astro ################## env start 13#######################");
-    try {
-      for (Object key : EnvironmentUtils.getProcEnvironment().keySet()) {
-        logger.info("astro key : {}, value : {}", key,
-          EnvironmentUtils.getProcEnvironment().get(key));
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    logger.info("astro ################## env end #######################");
     // add dependency from local repo
     String localRepo = getProperty("zeppelin.interpreter.localRepo");
     if (localRepo != null) {
@@ -921,18 +888,6 @@ public class SparkInterpreter extends Interpreter {
       }
     }
 
-
-    logger.info("astro ################## env start 14#######################");
-    try {
-      for (Object key : EnvironmentUtils.getProcEnvironment().keySet()) {
-        logger.info("astro key : {}, value : {}", key,
-          EnvironmentUtils.getProcEnvironment().get(key));
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    logger.info("astro ################## env end #######################");
-
     // add jar from DepInterpreter
     if (depInterpreter != null) {
       SparkDependencyContext depc = depInterpreter.getDependencyContext();
@@ -951,17 +906,6 @@ public class SparkInterpreter extends Interpreter {
         }
       }
     }
-    logger.info("astro ################## env start 15#######################");
-    try {
-      for (Object key : EnvironmentUtils.getProcEnvironment().keySet()) {
-        logger.info("astro key : {}, value : {}", key,
-          EnvironmentUtils.getProcEnvironment().get(key));
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    logger.info("astro ################## env end #######################");
-
 
     // add jar from local repo
     if (localRepo != null) {

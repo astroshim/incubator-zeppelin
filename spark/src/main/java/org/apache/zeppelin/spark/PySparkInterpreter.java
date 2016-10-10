@@ -469,11 +469,14 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
     }
 
     Gson gson = new Gson();
-    String[] sss = gson.fromJson(statementOutput, String[].class);
-    String[] sss2 = gson.fromJson(ret, String[].class);
+//    String[] sss = gson.fromJson(statementOutput, String[].class);
+//    String[] sss2 = gson.fromJson(ret, String[].class);
 
       //InterpreterResult completionResult = new InterpreterResult(Code.SUCCESS, ret);
     InterpreterResult completionResult = new InterpreterResult(Code.SUCCESS, statementOutput);
+
+
+    logger.info("astro completionResult : {}", completionResult);
 
     //end code for completion
 
@@ -535,28 +538,21 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
     LazyOpenInterpreter lazy = null;
     SparkInterpreter spark = null;
 
-    logger.info("astro in getSparkInterpreter 1 {}", SparkInterpreter.class.getName());
-
     //Interpreter p =
     //getInterpreterInTheSameSessionByClassName("org.apache.zeppelin.spark.SparkInterpreter");
     Interpreter p = getInterpreterInTheSameSessionByClassName(SparkInterpreter.class.getName());
 
     while (p instanceof WrappedInterpreter) {
       if (p instanceof LazyOpenInterpreter) {
-        logger.info("astro in getSparkInterpreter 1-1 {}", p);
         lazy = (LazyOpenInterpreter) p;
       }
       p = ((WrappedInterpreter) p).getInnerInterpreter();
     }
-    logger.info("astro in getSparkInterpreter p={}", p);
     spark = (SparkInterpreter) p;
 
-    logger.info("astro in getSparkInterpreter 2 {}, {}", spark, lazy);
     if (lazy != null) {
-      logger.info("astro in getSparkInterpreter 2-1 {}", lazy);
       lazy.open();
     }
-    logger.info("astro in getSparkInterpreter 3");
     return spark;
   }
 

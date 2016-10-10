@@ -207,11 +207,9 @@ public abstract class Interpreter {
   public Interpreter getInterpreterInTheSameSessionByClassName(String className) {
     synchronized (interpreterGroup) {
       for (List<Interpreter> interpreters : interpreterGroup.values()) {
-        logger.info("astro ===> {}", interpreters);
         boolean belongsToSameNoteGroup = false;
         Interpreter interpreterFound = null;
         for (Interpreter intp : interpreters) {
-          logger.info("astro className ===> {}", className);
           if (intp.getClassName().equals(className)) {
             interpreterFound = intp;
           }

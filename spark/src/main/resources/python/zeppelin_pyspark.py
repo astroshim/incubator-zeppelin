@@ -15,7 +15,10 @@
 # limitations under the License.
 #
 
-import sys, getopt, traceback, json, re
+import sys, getopt, traceback, json, re, os
+
+#sys.path.append("/home/nflabs/zeppelin/spark-dependencies/target/spark-dist/spark-2.0.0/python")
+#sys.path.append("/home/nflabs/zeppelin/spark-dependencies/target/spark-dist/spark-2.0.0/python/lib/py4j-0.10.1-src.zip")
 
 from py4j.java_gateway import java_import, JavaGateway, GatewayClient
 from py4j.protocol import Py4JJavaError
@@ -32,6 +35,20 @@ import traceback
 
 # for back compatibility
 from pyspark.sql import SQLContext, HiveContext, Row
+
+f = open('/home/nflabs/debug','w')
+
+
+def getInvokeFromJava():
+    global invokeFromJava
+    return invokeFromJava
+
+invokeFromJava = 0
+def setInvokeFromJava(v):
+    global invokeFromJava
+    invokeFromJava = v
+
+
 
 class Logger(object):
   def __init__(self):
@@ -155,6 +172,8 @@ class PySparkCompletion:
 
 
   def getCompletion(self, text_value):
+    f.write('getCompletion 1\n')
+    f.flush()
     completionList = set()
 
     globalCompletionList = self.getGlobalCompletion()
@@ -162,16 +181,29 @@ class PySparkCompletion:
       for completionItem in list(globalCompletionList):
         completionList.add(completionItem)
 
+    f.write('getCompletion 2\n')
+    f.flush()
+
     if text_value != None:
+      f.write('getCompletion 3\n')
+      f.flush()
       objectCompletionList = self.getMethodCompletion(text_value)
       if objectCompletionList != None:
         for completionItem in list(objectCompletionList):
           completionList.add(completionItem)
+
+    setInvokeFromJava(1)
     if len(completionList) <= 0:
-      self.interpreterObject.setStatementsFinished("", False)
+      f.write('getCompletion 4\n')
+      f.flush()
+      self.interpreterObject.setStatementsFinished("11", False)
     else:
+      f.write('getCompletion 5\n')
+      f.flush()
       result = json.dumps(list(filter(lambda x : not re.match("^__.*", x), list(completionList))))
       self.interpreterObject.setStatementsFinished(result, False)
+
+
 
 
 output = Logger()
@@ -228,6 +260,8 @@ sqlContext = sqlc
 completion = PySparkCompletion(intp)
 z = PyZeppelinContext(intp.getZeppelinContext())
 
+f.write('before while\n')
+f.flush()
 while True :
   req = intp.getStatements()
   try:
@@ -235,38 +269,69 @@ while True :
     jobGroup = req.jobGroup()
     final_code = []
 
+    f.write('in while 1 stmts=' + ','.join(stmts) + '\n')
+    f.flush()
+
     for s in stmts:
+      f.write('in while 2 s=' + s + '\n')
+      f.flush()
+
       if s == None:
         continue
 
       # skip comment
       s_stripped = s.strip()
+      f.write('in while 3 s_stripped=' + s_stripped + '\n')
+      f.flush()
       if len(s_stripped) == 0 or s_stripped.startswith("#"):
         continue
 
       final_code.append(s)
 
+    f.write('in while 3 s_stripped=' + ','.join(final_code) + '\n')
+    f.flush()
+
     if final_code:
       # use exec mode to compile the statements except the last statement,
       # so that the last statement's evaluation will be printed to stdout
       sc.setJobGroup(jobGroup, "Zeppelin")
-      code = compile('\n'.join(final_code), '<stdin>', 'exec', ast.PyCF_ONLY_AST, 1)
+      code = compile('\\n'.join(final_code), '<stdin>', 'exec', ast.PyCF_ONLY_AST, 1)
       to_run_exec, to_run_single = code.body[:-1], code.body[-1:]
 
+      #f.write('in while to_run_exec =' + ''.join(to_run_exec) + ', ' + ''.join(to_run_single) + '\n')
+      f.flush()
+
       try:
+        f.write('in while final_code 1\n')
+        f.flush()
+
         for node in to_run_exec:
+          f.write('in while final_code 2\n')
+          f.flush()
+
           mod = ast.Module([node])
           code = compile(mod, '<stdin>', 'exec')
           exec(code)
 
         for node in to_run_single:
+          f.write('in while final_code 3\n')
+          f.flush()
+
           mod = ast.Interactive([node])
           code = compile(mod, '<stdin>', 'single')
           exec(code)
       except:
         raise Exception(traceback.format_exc())
 
+    f.write('in while : setStatementsFinished ' + str(getInvokeFromJava()) + '\n')
+    f.flush()
+
     intp.setStatementsFinished("", False)
+    #if getInvokeFromJava() == 0 :
+    #  intp.setStatementsFinished("", False)
+    setInvokeFromJava(0)
+
+    #intp.setStatementsFinished("22", False)
   except Py4JJavaError:
     excInnerError = traceback.format_exc() # format_tb() does not return the inner exception
     innerErrorStart = excInnerError.find("Py4JJavaError:")
