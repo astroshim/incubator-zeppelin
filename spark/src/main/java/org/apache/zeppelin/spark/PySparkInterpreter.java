@@ -29,10 +29,7 @@ import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.exec.CommandLine;
@@ -182,8 +179,8 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
     cmd.addArgument(scriptPath, false);
     cmd.addArgument(Integer.toString(port), false);
 
-    cmd.addArgument(Integer.toString(SparkVersion.SPARK_2_0_0.toNumber()), false);
-    //cmd.addArgument(Integer.toString(getSparkInterpreter().getSparkVersion().toNumber()), false);
+    //cmd.addArgument(Integer.toString(SparkVersion.SPARK_2_0_0.toNumber()), false);
+    cmd.addArgument(Integer.toString(getSparkInterpreter().getSparkVersion().toNumber()), false);
     executor = new DefaultExecutor();
     outputStream = new SparkOutputStream(logger);
     PipedOutputStream ps = new PipedOutputStream();
@@ -204,8 +201,21 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
 
     try {
       Map env = EnvironmentUtils.getProcEnvironment();
+      String pythonPath = (String) env.get("PYTHONPATH");
+      if (pythonPath == null) {
+        pythonPath = "";
+      } else {
+        pythonPath += ":";
+      }
+
+      String sparkHome = "/home/nflabs/zeppelin/spark-dependencies/target/spark-dist/spark-2.0.0";
+      pythonPath += sparkHome + "/python/lib/py4j-0.10.1-src.zip:"
+        + sparkHome + "/python";
+      env.put("PYTHONPATH", pythonPath);
 
       executor.execute(cmd, env, this);
+//      int ret = executor.execute(cmd, env);
+
       pythonscriptRunning = true;
     } catch (IOException e) {
       throw new InterpreterException(e);
@@ -282,6 +292,8 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
   Integer statementFinishedNotifier = new Integer(0);
 
   public void setStatementsFinished(String out, boolean error) {
+    logger.info("astro ---out >>>>>>>  {}", out);
+
     synchronized (statementFinishedNotifier) {
       statementOutput = out;
       statementError = error;
@@ -428,13 +440,14 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
       statementSetNotifier.notify();
     }
 
+    String ret = null;
     synchronized (statementFinishedNotifier) {
       long startTime = System.currentTimeMillis();
       while (statementOutput == null
         && pythonScriptInitialized == false
         && pythonscriptRunning) {
         try {
-          if (System.currentTimeMillis() - startTime < MAX_TIMEOUT_SEC * 1000) {
+          if (System.currentTimeMillis() - startTime > MAX_TIMEOUT_SEC * 1000) {
             logger.error("pyspark completion didn't have response for {}sec.", MAX_TIMEOUT_SEC);
             break;
           }
@@ -445,16 +458,30 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
           return new LinkedList<>();
         }
       }
+
+      if (statementOutput != null) {
+        ret = statementOutput;
+      }
     }
 
     if (statementError) {
       return new LinkedList<>();
     }
-    InterpreterResult completionResult = new InterpreterResult(Code.SUCCESS, statementOutput);
-    //end code for completion
 
     Gson gson = new Gson();
+    String[] sss = gson.fromJson(statementOutput, String[].class);
+    String[] sss2 = gson.fromJson(ret, String[].class);
+
+      //InterpreterResult completionResult = new InterpreterResult(Code.SUCCESS, ret);
+    InterpreterResult completionResult = new InterpreterResult(Code.SUCCESS, statementOutput);
+
+    //end code for completion
+
+    //Gson gson = new Gson();
     String[] completionList = gson.fromJson(completionResult.message(), String[].class);
+    if (completionList == null) {
+      return new LinkedList<>();
+    }
     List<InterpreterCompletion> results = new LinkedList<>();
     for (String name: completionList) {
       results.add(new InterpreterCompletion(name, name));
