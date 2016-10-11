@@ -440,11 +440,10 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
       statementSetNotifier.notify();
     }
 
-    String ret = null;
+    InterpreterResult completionResult = null;
     synchronized (statementFinishedNotifier) {
       long startTime = System.currentTimeMillis();
       while (statementOutput == null
-        && pythonScriptInitialized == false
         && pythonscriptRunning) {
         try {
           if (System.currentTimeMillis() - startTime > MAX_TIMEOUT_SEC * 1000) {
@@ -458,29 +457,19 @@ public class PySparkInterpreter extends Interpreter implements ExecuteResultHand
           return new LinkedList<>();
         }
       }
-
-      if (statementOutput != null) {
-        ret = statementOutput;
+      if (statementError) {
+        return new LinkedList<>();
       }
-    }
-
-    if (statementError) {
-      return new LinkedList<>();
-    }
-
-    Gson gson = new Gson();
 //    String[] sss = gson.fromJson(statementOutput, String[].class);
 //    String[] sss2 = gson.fromJson(ret, String[].class);
 
       //InterpreterResult completionResult = new InterpreterResult(Code.SUCCESS, ret);
-    InterpreterResult completionResult = new InterpreterResult(Code.SUCCESS, statementOutput);
-
-
-    logger.info("astro completionResult : {}", completionResult);
-
+      completionResult = new InterpreterResult(Code.SUCCESS, statementOutput);
+      logger.info("astro completionResult : {}", completionResult);
+    }
     //end code for completion
 
-    //Gson gson = new Gson();
+    Gson gson = new Gson();
     String[] completionList = gson.fromJson(completionResult.message(), String[].class);
     if (completionList == null) {
       return new LinkedList<>();
