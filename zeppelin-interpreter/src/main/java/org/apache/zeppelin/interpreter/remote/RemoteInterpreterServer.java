@@ -431,7 +431,7 @@ public class RemoteInterpreterServer
     protected Object jobRun() throws Throwable {
       try {
         InterpreterContext.set(context);
-        
+
         // Open the interpreter instance prior to calling interpret().
         // This is necessary because the earliest we can register a hook
         // is from within the open() method.

@@ -41,16 +41,19 @@ public class FilterManager {
 
   Map<String, URLClassLoader> myClassLoaders = new LinkedHashMap<String, URLClassLoader>();
 
-  public void loadExtModule() throws MalformedURLException, InstantiationException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-    loadExtModule("eventhook", "/Users/shim/zeppelin/eventhook/", "org.apache.zeppelin.eventhook.FilterManager", null, null) ;
+  public void loadExtModule() throws MalformedURLException,
+    InstantiationException, InvocationTargetException,
+    NoSuchMethodException, IllegalAccessException {
+    loadExtModule("eventhook", "/Users/shim/zeppelin/eventhook/",
+      "org.apache.zeppelin.eventhook.FilterManager", null, null);
   }
 
   @SuppressWarnings("rawtypes")
   private static Class [] getType(Object [] params) {
-    if(params==null) return null;
+    if (params == null) return null;
     Class [] constType = new Class[params.length];
-    for(int i=0; i<params.length;i++){
-      if(params[i]==null) constType[i] = null;
+    for (int i = 0; i < params.length; i++){
+      if (params[i] == null) constType[i] = null;
       else constType[i] = params[i].getClass();
     }
     return constType;
@@ -68,12 +71,14 @@ public class FilterManager {
    * @throws InvocationTargetException
    * @throws NoSuchMethodException
    */
-  public void loadExtModule(String moduleName, String libPath, String className, String methodName, Object [] params)
-    throws MalformedURLException, InstantiationException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+  public void loadExtModule(String moduleName, String libPath,
+    String className, String methodName, Object [] params) throws MalformedURLException,
+    InstantiationException, InvocationTargetException,
+    NoSuchMethodException, IllegalAccessException {
 
     Preconditions.checkNotNull(libPath);
 
-    logger.info("Load Libraries libPath = "+libPath);
+    logger.info("Load Libraries libPath = " + libPath);
     File files = new File(libPath);
     File [] jars = files.listFiles();
     URL [] urls = new URL[jars.length];
@@ -83,7 +88,7 @@ public class FilterManager {
       if (jars[i].isDirectory()) continue;
       if (jars[i].getName().startsWith(".")) continue;
 
-      logger.info("  add "+jars[i].getAbsolutePath());
+      logger.info("  add " + jars[i].getAbsolutePath());
       urls[i] = jars[i].toURI().toURL();
 
 
@@ -104,9 +109,7 @@ public class FilterManager {
           logger.info("===> " + name);
         }
       }
-
     }
-
 
     ClassLoader oldcl = Thread.currentThread().getContextClassLoader();
     URLClassLoader cl = new URLClassLoader(urls, oldcl);
@@ -155,30 +158,25 @@ public class FilterManager {
 //          }
 //        }
 //        //return classes;
-//
-
-
 
 /*
+        // 모든 method 출력.
+        Method[] mothods = cls.getMethods();
+        for (Method m1 : mothods){
+          try {
+            logger.info("Method: " + m1.getName());
 
-      // 모든 method 출력.
-      Method[] mothods = cls.getMethods();
-      for (Method m1 : mothods){
-        try {
-          logger.info("Method: " + m1.getName());
-
-//	                    if (m1.getName().equals("myMethodTest")) {
-//	                    	Object inst = cls.newInstance();
-//	                        Object o = m1.invoke(inst, null);
-//	                        logger.info("o is : " + o);
-//	                    }
-        } catch (Exception ex) {
-          ex.printStackTrace();
+            if (m1.getName().equals("myMethodTest")) {
+              Object inst = cls.newInstance();
+              Object o = m1.invoke(inst, null);
+              logger.info("o is : " + o);
+            }
+          } catch (Exception ex) {
+            ex.printStackTrace();
+          }
         }
-      }
 */
-    }
-
+      }
       /**
        *
        ///////////////////////////////////////////////////////////////

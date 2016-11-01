@@ -780,6 +780,7 @@ public class Notebook implements NoteEventListener {
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
+      logger.info("astro before cronjob");
 
       String noteId = context.getJobDetail().getJobDataMap().getString("noteId");
       Note note = notebook.getNote(noteId);
@@ -808,6 +809,7 @@ public class Notebook implements NoteEventListener {
           notebook.getInterpreterFactory().restart(setting.getId());
         }
       }
+      logger.info("astro after cronjob");
     }
   }
 
