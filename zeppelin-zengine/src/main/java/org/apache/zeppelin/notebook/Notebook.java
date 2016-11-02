@@ -39,16 +39,16 @@ import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
-import org.quartz.CronScheduleBuilder;
-import org.quartz.CronTrigger;
-import org.quartz.JobBuilder;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.JobKey;
-import org.quartz.SchedulerException;
-import org.quartz.TriggerBuilder;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import org.apache.zeppelin.eventhook.Filter;
+import org.apache.zeppelin.eventhook.FilterChain;
+import org.apache.zeppelin.eventhook.Target;
+import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.impl.matchers.KeyMatcher;
+import org.quartz.spi.JobFactory;
+import org.quartz.spi.TriggerFiredBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +95,8 @@ public class Notebook implements NoteEventListener {
       Collections.synchronizedList(new LinkedList<NotebookEventListener>());
   private Credentials credentials;
 
+  private FilterChain filterChain;
+
   /**
    * Main constructor \w manual Dependency Injection
    *
@@ -116,7 +118,17 @@ public class Notebook implements NoteEventListener {
     this.notebookAuthorization = notebookAuthorization;
     this.credentials = credentials;
     quertzSchedFact = new org.quartz.impl.StdSchedulerFactory();
+
     quartzSched = quertzSchedFact.getScheduler();
+/*
+    quartzSched = quertzSchedFact.getDefaultScheduler();
+    quartzSched.setJobFactory(GuiceJobFactory.class);
+*/
+
+    JobKey jobKey = new JobKey("zeppelin", "zeppelin");
+    quartzSched.getListenerManager().addJobListener(
+      new HelloJobListener(), KeyMatcher.keyEquals(jobKey)
+    );
     quartzSched.start();
     CronJob.notebook = this;
 
@@ -129,6 +141,69 @@ public class Notebook implements NoteEventListener {
           TimeUnit.NANOSECONDS.toSeconds(start - System.nanoTime()));
     }
 
+    filterChain = new FilterChain();
+  }
+
+/*
+  final class GuiceJobFactory implements JobFactory {
+    private final Injector guice;
+
+    @Inject
+    public GuiceJobFactory(final Injector guice) {
+      this.guice = guice;
+    }
+
+    @Override
+    public org.quartz.Job newJob(TriggerFiredBundle triggerFiredBundle, Scheduler scheduler) throws SchedulerException {
+      // Get the job detail so we can get the job class
+      JobDetail jobDetail = triggerFiredBundle.getJobDetail();
+      Class jobClass = jobDetail.getJobClass();
+
+      try {
+        // Get a new instance of that class from Guice so we can do dependency injection
+        return (org.quartz.Job) guice.getInstance(jobClass);
+      } catch (Exception e) {
+        // Something went wrong.  Print out the stack trace here so SLF4J doesn't hide it.
+        e.printStackTrace();
+
+        // Rethrow the exception as an UnsupportedOperationException
+        throw new UnsupportedOperationException(e);
+      }
+    }
+  }
+*/
+
+  public static class HelloJobListener implements JobListener {
+    private static final Logger logger = LoggerFactory.getLogger(HelloJobListener.class);
+    public static final String LISTENER_NAME = "dummyJobListenerName";
+
+    @Override
+    public String getName() {
+      return LISTENER_NAME;
+    }
+
+    @Override
+    public void jobToBeExecuted(JobExecutionContext jobExecutionContext) {
+      logger.info("astro jobToBeExecuted");
+    }
+
+    @Override
+    public void jobExecutionVetoed(JobExecutionContext jobExecutionContext) {
+
+    }
+
+    @Override
+    public void jobWasExecuted(JobExecutionContext jobExecutionContext, JobExecutionException e) {
+      logger.info("astro jobWasExecuted");
+    }
+  }
+
+  public void addFilter(Filter filter) {
+    filterChain.addFilter(filter);
+  }
+
+  public void setTarget(Target target) {
+    filterChain.setTarget(target);
   }
 
   /**
@@ -775,7 +850,7 @@ public class Notebook implements NoteEventListener {
   /**
    * Cron task for the note.
    */
-  public static class CronJob implements org.quartz.Job {
+  public static class CronJob implements org.quartz.Job{
     public static Notebook notebook;
 
     @Override
