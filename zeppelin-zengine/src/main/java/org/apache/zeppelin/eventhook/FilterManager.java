@@ -2,7 +2,11 @@ package org.apache.zeppelin.eventhook;
 
 import com.google.common.base.Preconditions;
 import org.reflections.Reflections;
+import org.reflections.scanners.FieldAnnotationsScanner;
+import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.TypeAnnotationsScanner;
+import org.reflections.scanners.TypeElementsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
@@ -44,7 +48,7 @@ public class FilterManager {
   public void loadExtModule() throws MalformedURLException,
     InstantiationException, InvocationTargetException,
     NoSuchMethodException, IllegalAccessException {
-    loadExtModule("eventhook", "/Users/shim/zeppelin/eventhook/",
+    loadExtModule2("eventhook", "/Users/shim/zeppelin/eventhook/",
       "org.apache.zeppelin.eventhook.FilterManager", null, null);
   }
 
@@ -58,6 +62,115 @@ public class FilterManager {
     }
     return constType;
   }
+
+  public void invoke(URLClassLoader urlClassLoader, Class c, Method method)
+    throws ClassNotFoundException, IllegalAccessException,
+    InstantiationException, InvocationTargetException {
+    Class cls = urlClassLoader.loadClass(c.getName());
+    Object inst;
+    inst = cls.newInstance();
+    Object ret = method.invoke(inst, null);
+    logger.info("invoke return value => " + ret);
+
+  }
+
+  public void loadExtModule2(String moduleName, String libPath,
+    String className, String methodName, Object [] params) throws MalformedURLException,
+    InstantiationException, InvocationTargetException,
+    NoSuchMethodException, IllegalAccessException {
+
+    Preconditions.checkNotNull(libPath);
+
+    logger.info("Load Libraries libPath = " + libPath);
+    File files = new File(libPath);
+    File [] jars = files.listFiles();
+    URL [] urls = new URL[jars.length];
+
+    Preconditions.checkNotNull(jars);
+    for (int i = 0; i < jars.length; i++) {
+      if (jars[i].isDirectory()) continue;
+      if (jars[i].getName().startsWith(".")) continue;
+
+      logger.info("  add " + jars[i].getAbsolutePath());
+      urls[i] = jars[i].toURI().toURL();
+
+
+      // get class name from jar.
+      JarFile jarFile = null;
+      try {
+        jarFile = new JarFile(jars[i].getAbsoluteFile());
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      Enumeration allEntries = jarFile.entries();
+      while (allEntries.hasMoreElements()) {
+        JarEntry entry = (JarEntry) allEntries.nextElement();
+        String name = entry.getName();
+
+        if (name.endsWith(".class")) {
+          System.out.println("===> " + name);
+          logger.info("===> " + name);
+        }
+      }
+    }
+
+    ClassLoader oldcl = Thread.currentThread().getContextClassLoader();
+    URLClassLoader cl = new URLClassLoader(urls, oldcl);
+
+    // using goole Reflection library.
+    Reflections reflections = new Reflections(new ConfigurationBuilder()
+      //.addScanners(new SubTypesScanner())
+      .filterInputsBy(new FilterBuilder().include("org.apache.zeppelin.eventhook.*"))
+      .addClassLoader(cl)
+      .setScanners(new SubTypesScanner())
+      .addUrls(ClasspathHelper.forClassLoader(cl)));
+
+
+    final Set<Class<? extends ZeppelinEventHook>> classes = reflections.getSubTypesOf(ZeppelinEventHook.class);
+    //Set<Class<? extends ZeppelinEventHook>> classes = reflextions.getSubTypesOf(ZeppelinEventHook.class);
+    logger.info("Loaded {} Elise collector(s) in the ./extensions folder", classes.size());
+    for (Class c : classes) {
+      if (c == null) {
+        logger.info("Loaded class is null, I do not know what is happening !");
+      } else {
+        try {
+          logger.info("filter class : " + c.toString());
+          Method[] ms = c.getMethods();
+          logger.info("m : ", ms);
+          System.out.println("m : " + ms);
+
+          final Method m = c.getMethod("onNoteStart");
+
+          System.out.println("m : " + m);
+          System.out.println("c.getname : " + c.getName());
+
+
+          /// run method
+          invoke(cl, c, m);
+/*
+          Class cls = cl.loadClass(c.getName());
+//          Method m;
+          Object inst;
+//          m = cls.getMethod(methodName, getType(params));
+          inst = cls.newInstance();
+          Object ret = m.invoke(inst, null);
+          logger.info("invoke return value => " + ret);
+*/
+
+/*
+          if (Objects.equals(m.getDeclaringClass(), c)
+            && false) {
+            m.invoke(null);
+          }
+*/
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException | ClassNotFoundException e) {
+          logger.warn("Script {} can't be initialized: {}", c.getSimpleName(), e.getLocalizedMessage());
+        }
+      }
+    }
+
+  }
+
 
   /**
    *
@@ -107,6 +220,8 @@ public class FilterManager {
         if (name.endsWith(".class")) {
           System.out.println("===> " + name);
           logger.info("===> " + name);
+
+          className = name;
         }
       }
     }
@@ -135,29 +250,30 @@ public class FilterManager {
       else {
         logger.info("Using reflections to gather all UnitInstanceCollector classes");
 
-// using goole Reflection library.
-//        Reflections reflextions = new Reflections(new ConfigurationBuilder()
-//          //.addScanners(new SubTypesScanner())
-//          .filterInputsBy(new FilterBuilder().include("org.apache.zeppelin.eventhook.*"))
-//          .addClassLoader(cl)
-//          .setScanners(new SubTypesScanner())
-//          .addUrls(ClasspathHelper.forClassLoader(cl)));
-//
-//        Set<Class<? extends Filter>> classes = reflextions.getSubTypesOf(Filter.class);
-//        logger.info("Loaded {} Elise collector(s) in the ./extensions folder", classes.size());
-//        for (Class c : classes) {
-//          if (c == null) {
-//            logger.info("Loaded class is null, I do not know what is happening !");
-//          } else {
-//            logger.info("filter class : " + c.toString());
-///*
-//
-//            final Method onLoadMethod = c.getMethod("onLoad");
-//            onLoadMethod.invoke(null);
-//*/
-//          }
-//        }
-//        //return classes;
+
+        // using goole Reflection library.
+        Reflections reflextions = new Reflections(new ConfigurationBuilder()
+          //.addScanners(new SubTypesScanner())
+          .filterInputsBy(new FilterBuilder().include("org.apache.zeppelin.eventhook.*"))
+          .addClassLoader(cl)
+          .setScanners(new SubTypesScanner())
+          .addUrls(ClasspathHelper.forClassLoader(cl)));
+
+        Set<Class<? extends ZeppelinEventHook>> classes = reflextions.getSubTypesOf(ZeppelinEventHook.class);
+        logger.info("Loaded {} Elise collector(s) in the ./extensions folder", classes.size());
+        for (Class c : classes) {
+          if (c == null) {
+            logger.info("Loaded class is null, I do not know what is happening !");
+          } else {
+            logger.info("filter class : " + c.toString());
+/*
+
+            final Method onLoadMethod = c.getMethod("onLoad");
+            onLoadMethod.invoke(null);
+*/
+          }
+        }
+        //return classes;
 
 /*
         // 모든 method 출력.
