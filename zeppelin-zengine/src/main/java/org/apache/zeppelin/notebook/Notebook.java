@@ -154,7 +154,8 @@ public class Notebook implements NoteEventListener {
     }
 
     @Override
-    public org.quartz.Job newJob(TriggerFiredBundle triggerFiredBundle, Scheduler scheduler) throws SchedulerException {
+    public org.quartz.Job newJob(TriggerFiredBundle
+      triggerFiredBundle, Scheduler scheduler) throws SchedulerException {
       // Get the job detail so we can get the job class
       JobDetail jobDetail = triggerFiredBundle.getJobDetail();
       Class jobClass = jobDetail.getJobClass();
@@ -173,6 +174,9 @@ public class Notebook implements NoteEventListener {
   }
 */
 
+  /**
+   *
+   */
   public static class HelloJobListener implements JobListener {
     private static final Logger logger = LoggerFactory.getLogger(HelloJobListener.class);
     public static final String LISTENER_NAME = "dummyJobListenerName";

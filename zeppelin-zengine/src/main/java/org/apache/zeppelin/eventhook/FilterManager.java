@@ -63,17 +63,30 @@ public class FilterManager {
     return constType;
   }
 
-  public void invoke(URLClassLoader urlClassLoader, Class c, Method method)
-    throws ClassNotFoundException, IllegalAccessException,
+  public void invoke(URLClassLoader urlClassLoader, Class c, Method method) throws
+    ClassNotFoundException, IllegalAccessException,
     InstantiationException, InvocationTargetException {
+
     Class cls = urlClassLoader.loadClass(c.getName());
     Object inst;
     inst = cls.newInstance();
     Object ret = method.invoke(inst, null);
     logger.info("invoke return value => " + ret);
-
   }
 
+
+  /**
+   *
+   * @param moduleName : map의 key 이다. 사실 여기서는 별로 필요하지 않을듯
+   * @param libPath : 해당 key의 jar가 있는 path.
+   * @param className
+   * @param methodName
+   * @param params
+   * @throws MalformedURLException
+   * @throws InstantiationException
+   * @throws InvocationTargetException
+   * @throws NoSuchMethodException
+   */
   public void loadExtModule2(String moduleName, String libPath,
     String className, String methodName, Object [] params) throws MalformedURLException,
     InstantiationException, InvocationTargetException,
@@ -126,8 +139,10 @@ public class FilterManager {
       .addUrls(ClasspathHelper.forClassLoader(cl)));
 
 
-    final Set<Class<? extends ZeppelinEventHook>> classes = reflections.getSubTypesOf(ZeppelinEventHook.class);
-    //Set<Class<? extends ZeppelinEventHook>> classes = reflextions.getSubTypesOf(ZeppelinEventHook.class);
+    final Set<Class<? extends ZeppelinEventHook>> classes =
+      reflections.getSubTypesOf(ZeppelinEventHook.class);
+    //Set<Class<? extends ZeppelinEventHook>> classes =
+    // reflextions.getSubTypesOf(ZeppelinEventHook.class);
     logger.info("Loaded {} Elise collector(s) in the ./extensions folder", classes.size());
     for (Class c : classes) {
       if (c == null) {
@@ -143,7 +158,6 @@ public class FilterManager {
 
           System.out.println("m : " + m);
           System.out.println("c.getname : " + c.getName());
-
 
           /// run method
           invoke(cl, c, m);
@@ -163,17 +177,16 @@ public class FilterManager {
             m.invoke(null);
           }
 */
-        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException | ClassNotFoundException e) {
-          logger.warn("Script {} can't be initialized: {}", c.getSimpleName(), e.getLocalizedMessage());
+        } catch (IllegalAccessException | NoSuchMethodException |
+          InvocationTargetException | ClassNotFoundException e) {
+          logger.warn("Script {} can't be initialized: {}",
+            c.getSimpleName(), e.getLocalizedMessage());
         }
       }
     }
-
   }
 
-
   /**
-   *
    * @param moduleName : map의 key 이다. 사실 여기서는 별로 필요하지 않을듯
    * @param libPath : 해당 key의 jar가 있는 path.
    * @param className
@@ -259,7 +272,8 @@ public class FilterManager {
           .setScanners(new SubTypesScanner())
           .addUrls(ClasspathHelper.forClassLoader(cl)));
 
-        Set<Class<? extends ZeppelinEventHook>> classes = reflextions.getSubTypesOf(ZeppelinEventHook.class);
+        Set<Class<? extends ZeppelinEventHook>> classes =
+          reflextions.getSubTypesOf(ZeppelinEventHook.class);
         logger.info("Loaded {} Elise collector(s) in the ./extensions folder", classes.size());
         for (Class c : classes) {
           if (c == null) {

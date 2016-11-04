@@ -5,10 +5,7 @@ package org.apache.zeppelin.eventhook;
  */
 public interface ZeppelinEventHook {
   void onServerInit();
-
   void onServerShutdownStart();
-
   void onNoteStart();
-
   void onNoteFinished();
 }
