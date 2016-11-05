@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -103,11 +104,11 @@ public class FilterManager {
     for (int i = 0; i < jars.length; i++) {
       if (jars[i].isDirectory()) continue;
       if (jars[i].getName().startsWith(".")) continue;
-
-      logger.info("  add " + jars[i].getAbsolutePath());
+      logger.info("  add jar : " + jars[i].getAbsolutePath());
+      System.out.println("  add jar : " + jars[i].getAbsolutePath());
       urls[i] = jars[i].toURI().toURL();
 
-
+/*
       // get class name from jar.
       JarFile jarFile = null;
       try {
@@ -121,14 +122,17 @@ public class FilterManager {
         String name = entry.getName();
 
         if (name.endsWith(".class")) {
-          System.out.println("===> " + name);
-          logger.info("===> " + name);
+          System.out.println("classname ===> " + name);
+          logger.info("classname ===> " + name);
         }
       }
+*/
+    }
+    for (int i = 0; i < urls.length; i++) {
+      System.out.println("  url : " + urls[i]);
     }
 
-    ClassLoader oldcl = Thread.currentThread().getContextClassLoader();
-    URLClassLoader cl = new URLClassLoader(urls, oldcl);
+    URLClassLoader cl = new URLClassLoader(urls, Thread.currentThread().getContextClassLoader());
 
     // using goole Reflection library.
     Reflections reflections = new Reflections(new ConfigurationBuilder()
@@ -149,27 +153,45 @@ public class FilterManager {
         logger.info("Loaded class is null, I do not know what is happening !");
       } else {
         try {
+/*
+          Class gsonClass = cl.loadClass(c.getName());
+          //Class gsonClass = cl.loadClass("org.apache.zeppelin.eventhook.ZeppelinEventHook");
+          Method method = gsonClass.getMethod("onNoteStart");
+
+          Constructor constructor = gsonClass.getConstructor();
+          Object gsonObj = constructor.newInstance();
+
+          Object returnObj =  method.invoke(gsonObj, null);
+          String jsonString = (String)returnObj;
+          System.out.println("----> " + jsonString);
+          */
+
+
+          //// 1
           logger.info("filter class : " + c.toString());
           Method[] ms = c.getMethods();
           logger.info("m : ", ms);
           System.out.println("m : " + ms);
 
           final Method m = c.getMethod("onNoteStart");
-
           System.out.println("m : " + m);
           System.out.println("c.getname : " + c.getName());
 
           /// run method
           invoke(cl, c, m);
+
 /*
+
+          //// 2
           Class cls = cl.loadClass(c.getName());
-//          Method m;
           Object inst;
-//          m = cls.getMethod(methodName, getType(params));
+          Method mmm = cls.getMethod("onNoteStart", getType(params));
           inst = cls.newInstance();
-          Object ret = m.invoke(inst, null);
-          logger.info("invoke return value => " + ret);
+          Object ret = mmm.invoke(inst, null);
+          System.out.println("ret : " + ret);
 */
+
+
 
 /*
           if (Objects.equals(m.getDeclaringClass(), c)
@@ -179,6 +201,7 @@ public class FilterManager {
 */
         } catch (IllegalAccessException | NoSuchMethodException |
           InvocationTargetException | ClassNotFoundException e) {
+          e.printStackTrace();
           logger.warn("Script {} can't be initialized: {}",
             c.getSimpleName(), e.getLocalizedMessage());
         }
