@@ -20,7 +20,7 @@
 #
 
 USAGE="-e Usage: zeppelin-daemon.sh\n\t
-        [--config <conf-dir>] {start|stop|upstart|restart|reload|status}\n\t
+        [--config <conf-dir>] {start|stop|upstart|restart|reload|status|get-spark}\n\t
         [--version | -v]"
 
 if [[ "$1" == "--config" ]]; then
@@ -264,6 +264,9 @@ case "${1}" in
     ;;
   status)
     find_zeppelin_process
+    ;;
+  get-spark)
+    downloadSparkBinary
     ;;
   -v | --version)
     getZeppelinVersion
