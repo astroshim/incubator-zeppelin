@@ -127,12 +127,14 @@ public class SparkInterpreter extends Interpreter {
 
   public SparkInterpreter(Properties property) {
     super(property);
+    logger.info("astro spark interpreter created 1");
     out = new InterpreterOutputStream(logger);
   }
 
   public SparkInterpreter(Properties property, SparkContext sc) {
     this(property);
 
+    logger.info("astro spark interpreter created 2");
     this.sc = sc;
     env = SparkEnv.get();
     sparkListener = setupListeners(this.sc);
@@ -141,6 +143,7 @@ public class SparkInterpreter extends Interpreter {
   public SparkContext getSparkContext() {
     synchronized (sharedInterpreterLock) {
       if (sc == null) {
+        logger.info("astro getSparkContext created ");
         sc = createSparkContext();
         env = SparkEnv.get();
         sparkListener = setupListeners(sc);
@@ -301,7 +304,7 @@ public class SparkInterpreter extends Interpreter {
    * Create SparkSession
    */
   public Object createSparkSession() {
-    logger.info("------ Create new SparkContext {} -------", getProperty("master"));
+    logger.info("astro ------ Create new SparkContext {} -------", getProperty("master"));
     String execUri = System.getenv("SPARK_EXECUTOR_URI");
     conf.setAppName(getProperty("spark.app.name"));
 

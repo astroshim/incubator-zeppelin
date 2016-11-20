@@ -77,9 +77,12 @@ public abstract class RemoteInterpreterProcess {
         start();
       }
 
+      logger.info("astro reference cientPool = {}", clientPool);
       if (clientPool == null) {
+        logger.info("astro try to create cientPool");
         clientPool = new GenericObjectPool<>(new ClientFactory(getHost(), getPort()));
         clientPool.setTestOnBorrow(true);
+        logger.info("astro created cientPool = {}", clientPool);
 
         remoteInterpreterEventPoller.setInterpreterGroup(interpreterGroup);
         remoteInterpreterEventPoller.setInterpreterProcess(this);
