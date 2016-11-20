@@ -50,7 +50,7 @@ public class ClientFactory extends BasePooledObjectFactory<Client>{
   @Override
   public Client create() throws Exception {
     logger.info("astro ClientFactory create.----> {}, {}", host, port);
-    TSocket transport = new TSocket(host, port, 10000);
+    TSocket transport = new TSocket(host, port);
     try {
       transport.open();
     } catch (TTransportException e) {
