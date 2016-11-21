@@ -103,7 +103,6 @@ public abstract class RemoteInterpreterProcess {
       return null;
     }
     logger.info("astro in getClient isClosed = {}", clientPool.isClosed());
-    logger.info("astro in getClient borrowObject = {}", clientPool.borrowObject());
     return clientPool.borrowObject();
   }
 
