@@ -73,8 +73,10 @@ public abstract class RemoteInterpreterProcess {
   }
 
   public int reference(InterpreterGroup interpreterGroup) {
+    logger.info("astro reference referenceCount = {}", referenceCount);
     synchronized (referenceCount) {
       if (!isRunning()) {
+        logger.info("astro reference START");
         start();
       }
 
