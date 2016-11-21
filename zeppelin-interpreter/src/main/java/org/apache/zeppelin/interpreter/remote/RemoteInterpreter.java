@@ -265,6 +265,8 @@ public class RemoteInterpreter extends Interpreter {
           p = ((WrappedInterpreter) p).getInnerInterpreter();
         }
         try {
+          logger.info("astro ------------- init call before!! ");
+
           ((RemoteInterpreter) p).init();
         } catch (InterpreterException e) {
           logger.error("Failed to initialize interpreter: {}. Remove it from interpreterGroup",
@@ -391,8 +393,10 @@ public class RemoteInterpreter extends Interpreter {
 
   @Override
   public FormType getFormType() {
+    logger.info("astro getFromType before init()");
     init();
 
+    logger.info("astro getFromType before init() formType={}", formType);
     if (formType != null) {
       return formType;
     }
@@ -402,6 +406,8 @@ public class RemoteInterpreter extends Interpreter {
     try {
       client = interpreterProcess.getClient();
     } catch (Exception e1) {
+      logger.info("astro ------------- exception!! {}", formType);
+
       throw new InterpreterException(e1);
     }
 
