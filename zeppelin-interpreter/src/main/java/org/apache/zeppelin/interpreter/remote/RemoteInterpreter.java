@@ -210,25 +210,26 @@ public class RemoteInterpreter extends Interpreter {
     RemoteInterpreterProcess interpreterProcess = getInterpreterProcess();
 
     final InterpreterGroup interpreterGroup = getInterpreterGroup();
-    logger.info("astro call here!! in the init..1");
+    logger.info("astro call here!! in the init..1 {}", interpreterProcess);
     interpreterProcess.reference(interpreterGroup);
     logger.info("astro call here!! in the init..2");
     interpreterProcess.setMaxPoolSize(
         Math.max(this.maxPoolSize, interpreterProcess.getMaxPoolSize()));
     logger.info("astro call here!! in the init..3");
     String groupId = interpreterGroup.getId();
-    logger.info("astro call here!! in the init..4");
+    logger.info("astro call here!! in the init..4, groupid={}", groupId);
 
     synchronized (interpreterProcess) {
       logger.info("astro call here!! in the init..5");
       Client client = null;
       try {
-        logger.info("astro call here!! in the init..6");
+        logger.info("astro call here!! in the init..6 {}", getClassName());
         client = interpreterProcess.getClient();
       } catch (Exception e1) {
         logger.info("astro call here!! in the init..7");
         throw new InterpreterException(e1);
       }
+      logger.info("astro call here!! in the init..8");
 
       boolean broken = false;
       try {

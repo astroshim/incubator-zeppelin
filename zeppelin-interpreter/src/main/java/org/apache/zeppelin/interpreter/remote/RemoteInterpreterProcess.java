@@ -93,9 +93,12 @@ public abstract class RemoteInterpreterProcess {
   }
 
   public Client getClient() throws Exception {
+    logger.info("astro in getClient clientPool = {}", clientPool);
     if (clientPool == null || clientPool.isClosed()) {
       return null;
     }
+    logger.info("astro in getClient isClosed = {}", clientPool.isClosed());
+    logger.info("astro in getClient borrowObject = {}", clientPool.borrowObject());
     return clientPool.borrowObject();
   }
 
