@@ -21,7 +21,10 @@ package org.apache.zeppelin.interpreter.remote;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.Socket;
+import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -88,10 +91,30 @@ public class RemoteInterpreterServer
         new TThreadPoolServer.Args(serverTransport).processor(processor));
   }
 
+  private boolean isPortInUse(String host, int port) {
+    // Assume no connection is possible.
+    boolean result = false;
+
+    try {
+      (new Socket(host, port)).close();
+      result = true;
+    } catch(SocketException e) {
+      // Could not connect.
+    } catch (UnknownHostException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    return result;
+  }
+
   @Override
   public void run() {
-    logger.info("Starting remote interpreter server on port {}", port);
+    logger.info("astro Starting remote interpreter server on port {}", port);
     server.serve();
+    logger.info("astro Started remote interpreter server on port {}", port);
+    logger.info("astro Started remote interpreter server on port check {}", isPortInUse("127.0.0.1", port));
   }
 
   @Override

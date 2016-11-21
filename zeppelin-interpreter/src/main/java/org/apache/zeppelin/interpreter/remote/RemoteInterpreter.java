@@ -74,6 +74,8 @@ public class RemoteInterpreter extends Interpreter {
                            RemoteInterpreterProcessListener remoteInterpreterProcessListener,
                            ApplicationEventListener appListener) {
     super(property);
+
+    logger.info("astro creator of RemoteInterpreter 1 {}", className);
     this.noteId = noteId;
     this.className = className;
     initialized = false;
@@ -102,6 +104,7 @@ public class RemoteInterpreter extends Interpreter {
       RemoteInterpreterProcessListener remoteInterpreterProcessListener,
       ApplicationEventListener appListener) {
     super(property);
+    logger.info("astro creator of RemoteInterpreter 2 {}", className);
     this.noteId = noteId;
     this.className = className;
     initialized = false;
@@ -127,6 +130,7 @@ public class RemoteInterpreter extends Interpreter {
       RemoteInterpreterProcessListener remoteInterpreterProcessListener,
       ApplicationEventListener appListener) {
     super(property);
+    logger.info("astro creator of RemoteInterpreter 3 {}", className);
     this.className = className;
     this.noteId = noteId;
     this.interpreterRunner = interpreterRunner;
