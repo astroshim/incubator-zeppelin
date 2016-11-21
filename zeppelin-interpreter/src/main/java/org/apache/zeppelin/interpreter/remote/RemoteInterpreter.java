@@ -202,6 +202,7 @@ public class RemoteInterpreter extends Interpreter {
   }
 
   public synchronized void init() {
+    logger.info("astro init RemoteInterpreter {}", initialized);
     if (initialized == true) {
       return;
     }
@@ -300,6 +301,8 @@ public class RemoteInterpreter extends Interpreter {
 
   @Override
   public InterpreterResult interpret(String st, InterpreterContext context) {
+    logger.info("astro interprete RemoteInterpreter {}", st);
+
     if (logger.isDebugEnabled()) {
       logger.debug("st:\n{}", st);
     }
