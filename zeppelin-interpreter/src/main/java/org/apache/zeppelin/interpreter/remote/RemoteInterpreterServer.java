@@ -98,7 +98,7 @@ public class RemoteInterpreterServer
     try {
       (new Socket(host, port)).close();
       result = true;
-    } catch(SocketException e) {
+    } catch (SocketException e) {
       // Could not connect.
     } catch (UnknownHostException e) {
       e.printStackTrace();
@@ -114,7 +114,8 @@ public class RemoteInterpreterServer
     logger.info("astro Starting remote interpreter server on port {}", port);
     server.serve();
     logger.info("astro Started remote interpreter server on port {}", port);
-    logger.info("astro Started remote interpreter server on port check {}", isPortInUse("127.0.0.1", port));
+    logger.info("astro Started remote interpreter server on port check {}",
+      isPortInUse("127.0.0.1", port));
   }
 
   @Override
