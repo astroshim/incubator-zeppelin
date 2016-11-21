@@ -18,6 +18,7 @@ package org.apache.zeppelin.interpreter.remote;
 
 import com.google.gson.Gson;
 import org.apache.commons.exec.*;
+import org.apache.commons.pool2.impl.GenericKeyedObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.thrift.TException;
 import org.apache.zeppelin.helium.ApplicationEventListener;
@@ -81,8 +82,10 @@ public abstract class RemoteInterpreterProcess {
       if (clientPool == null) {
         logger.info("astro try to create cientPool");
         clientPool = new GenericObjectPool<>(new ClientFactory(getHost(), getPort()));
+        clientPool.setBlockWhenExhausted(true);
+        clientPool.setMaxWaitMillis(20000);
         clientPool.setTestOnBorrow(true);
-        logger.info("astro created cientPool = {}", clientPool);
+        logger.info("astro created cientPool = {}", clientPool.getCreatedCount());
 
         remoteInterpreterEventPoller.setInterpreterGroup(interpreterGroup);
         remoteInterpreterEventPoller.setInterpreterProcess(this);
