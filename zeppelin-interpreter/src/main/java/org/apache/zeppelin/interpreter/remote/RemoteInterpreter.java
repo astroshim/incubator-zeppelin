@@ -210,23 +210,29 @@ public class RemoteInterpreter extends Interpreter {
     RemoteInterpreterProcess interpreterProcess = getInterpreterProcess();
 
     final InterpreterGroup interpreterGroup = getInterpreterGroup();
-    logger.info("astro call here!! in the init..");
+    logger.info("astro call here!! in the init..1");
     interpreterProcess.reference(interpreterGroup);
+    logger.info("astro call here!! in the init..2");
     interpreterProcess.setMaxPoolSize(
         Math.max(this.maxPoolSize, interpreterProcess.getMaxPoolSize()));
+    logger.info("astro call here!! in the init..3");
     String groupId = interpreterGroup.getId();
+    logger.info("astro call here!! in the init..4");
 
     synchronized (interpreterProcess) {
+      logger.info("astro call here!! in the init..5");
       Client client = null;
       try {
+        logger.info("astro call here!! in the init..6");
         client = interpreterProcess.getClient();
       } catch (Exception e1) {
+        logger.info("astro call here!! in the init..7");
         throw new InterpreterException(e1);
       }
 
       boolean broken = false;
       try {
-        logger.info("Create remote interpreter {}", getClassName());
+        logger.info("astro Create remote interpreter {}", getClassName());
         if (localRepoPath != null) {
           property.put("zeppelin.interpreter.localRepo", localRepoPath);
         }
@@ -240,7 +246,7 @@ public class RemoteInterpreter extends Interpreter {
         }
 
       } catch (TException e) {
-        logger.error("Failed to create interpreter: {}", getClassName());
+        logger.error("astro Failed to create interpreter: {}", getClassName());
         throw new InterpreterException(e);
       } finally {
         // TODO(jongyoul): Fixed it when not all of interpreter in same interpreter group are broken
