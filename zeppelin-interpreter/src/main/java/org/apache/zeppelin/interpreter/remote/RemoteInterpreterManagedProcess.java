@@ -125,6 +125,7 @@ public class RemoteInterpreterManagedProcess extends RemoteInterpreterProcess
       throw new InterpreterException(e);
     }
 
+    logger.info("astro -------- checkout connection timeout {}", getConnectTimeout());
 
     long startTime = System.currentTimeMillis();
     while (System.currentTimeMillis() - startTime < getConnectTimeout()) {
@@ -145,6 +146,7 @@ public class RemoteInterpreterManagedProcess extends RemoteInterpreterProcess
         }
       }
     }
+    logger.info("astro -------- checkout connection timeout passed");
   }
 
   public void stop() {

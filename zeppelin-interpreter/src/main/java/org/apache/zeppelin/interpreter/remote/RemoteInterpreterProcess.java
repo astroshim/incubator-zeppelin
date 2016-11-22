@@ -148,6 +148,8 @@ public abstract class RemoteInterpreterProcess {
         clientPool.clear();
         clientPool.close();
 
+        logger.info("astro -------- checkout connection timeout {}", connectTimeout);
+
         // wait for some time (connectTimeout) and force kill
         // remote process server.serve() loop is not always finishing gracefully
         long startTime = System.currentTimeMillis();
@@ -163,6 +165,7 @@ public abstract class RemoteInterpreterProcess {
             break;
           }
         }
+        logger.info("astro -------- checkout connection timeout");
       }
       return r;
     }
