@@ -150,7 +150,7 @@ public class RemoteInterpreterManagedProcess extends RemoteInterpreterProcess
       }
     }
     logger.info("astro -------- checkout connection timeout passed. port check={}",
-      isPortInUse("127.0.0.1", port)));
+      isPortInUse("127.0.0.1", port));
   }
 
   private boolean isPortInUse(String host, int port) {
