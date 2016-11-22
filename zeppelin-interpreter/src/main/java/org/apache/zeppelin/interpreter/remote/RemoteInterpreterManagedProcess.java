@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Map;
 
 /**
@@ -146,7 +149,26 @@ public class RemoteInterpreterManagedProcess extends RemoteInterpreterProcess
         }
       }
     }
-    logger.info("astro -------- checkout connection timeout passed");
+    logger.info("astro -------- checkout connection timeout passed. port check={}",
+      isPortInUse("127.0.0.1", port)));
+  }
+
+  private boolean isPortInUse(String host, int port) {
+    // Assume no connection is possible.
+    boolean result = false;
+
+    try {
+      (new Socket(host, port)).close();
+      result = true;
+    } catch (SocketException e) {
+      // Could not connect.
+    } catch (UnknownHostException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    return result;
   }
 
   public void stop() {
