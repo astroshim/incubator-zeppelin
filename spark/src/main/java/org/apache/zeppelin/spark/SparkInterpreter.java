@@ -309,6 +309,9 @@ public class SparkInterpreter extends Interpreter {
     String execUri = System.getenv("SPARK_EXECUTOR_URI");
     conf.setAppName(getProperty("spark.app.name"));
 
+    System.setProperty("HADOOP_USER_NAME", getUserName());
+    conf.set("user.name", getUserName());
+
     if (outputDir != null) {
       conf.set("spark.repl.class.outputDir", outputDir.getAbsolutePath());
     }
@@ -1116,6 +1119,7 @@ public class SparkInterpreter extends Interpreter {
           + " is not supported");
     }
     populateSparkWebUrl(context);
+
     z.setInterpreterContext(context);
     if (line == null || line.trim().length() == 0) {
       return new InterpreterResult(Code.SUCCESS);
