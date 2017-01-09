@@ -17,6 +17,7 @@
 
 package org.apache.zeppelin.python;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,9 @@ import java.lang.reflect.Field;
 public class PythonProcess {
   private static final Logger logger = LoggerFactory.getLogger(PythonProcess.class);
   private static final String STATEMENT_END = "*!?flush reader!?*";
+  private static final String PYTHON_INDENT = "... ";
+  private static final int FIRSTLINE = 1;
+  private static final String LF = "\n";
   InputStream stdout;
   OutputStream stdin;
   PrintWriter writer;
@@ -104,15 +108,29 @@ public class PythonProcess {
     }
   }
 
+  private String removePythonIndentFromOutput(String line, int linefeedcount) {
+    return linefeedcount >= 0 &&
+            line.startsWith(PYTHON_INDENT) &&
+            StringUtils.countMatches(line, PYTHON_INDENT) > linefeedcount ?
+        line.substring(PYTHON_INDENT.length() * linefeedcount) : line;
+  }
+
   public String sendAndGetResult(String cmd) throws IOException {
+    int linefeedcount = StringUtils.countMatches(cmd, LF);
     writer.println(cmd);
     writer.println();
     writer.println("\"" + STATEMENT_END + "\"");
     StringBuilder output = new StringBuilder();
     String line = null;
+    int linenum = FIRSTLINE;
     while (!(line = reader.readLine()).contains(STATEMENT_END)) {
       logger.debug("Read line from python shell : " + line);
+      if (linenum == FIRSTLINE) {
+        line = removePythonIndentFromOutput(line, linefeedcount - 1);
+      }
       output.append(line + "\n");
+
+      linenum += 1;
     }
     return output.toString();
   }
