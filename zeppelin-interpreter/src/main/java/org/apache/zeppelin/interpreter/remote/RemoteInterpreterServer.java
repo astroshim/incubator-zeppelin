@@ -493,6 +493,8 @@ public class RemoteInterpreterServer
         List<InterpreterResultMessage> resultMessages = context.out.toInterpreterResultMessage();
         resultMessages.addAll(result.message());
 
+        logger.info("--->", resultMessages.size());
+
         // put result into resource pool
         if (resultMessages.size() > 0) {
           int lastMessageIndex = resultMessages.size() - 1;
