@@ -32,7 +32,6 @@ class Logger(object):
     pass
 
   def write(self, message):
-    f.write('write?? ------------------' + message + '\n')
     intp.appendOutput(message)
 
   def reset(self):
@@ -42,68 +41,98 @@ class Logger(object):
     pass
 
 
-class PyZeppelinContext(dict):
-  def __init__(self, zc):
-    self.z = zc
+class PyZeppelinContext(object):
+  """ If py4j is detected, these class will be override
+      with the implementation in bootstrap_input.py
+  """
+  errorMsg = "You must install py4j Python module " \
+             "(pip install py4j) to use Zeppelin dynamic forms features"
+
+  def __init__(self):
+    self.max_result = 1000
     self._displayhook = lambda *args: None
-
-  # By implementing special methods it makes operating on it more Pythonic
-  def __setitem__(self, key, item):
-    self.z.put(key, item)
-
-  def __getitem__(self, key):
-    return self.z.get(key)
-
-  def __delitem__(self, key):
-    self.z.remove(key)
-
-  def __contains__(self, item):
-    return self.z.containsKey(item)
-
-  def add(self, key, value):
-    self.__setitem__(key, value)
-
-  def put(self, key, value):
-    self.__setitem__(key, value)
-
-  def get(self, key):
-    return self.__getitem__(key)
+    self._setup_matplotlib()
 
   def input(self, name, defaultValue=""):
-    return self.z.input(name, defaultValue)
+    print(self.errorMsg)
 
   def select(self, name, options, defaultValue=""):
-    # auto_convert to ArrayList doesn't match the method signature on JVM side
-    tuples = list(map(lambda items: self.__tupleToScalaTuple2(items), options))
-    iterables = gateway.jvm.scala.collection.JavaConversions.collectionAsScalaIterable(tuples)
-    return self.z.select(name, defaultValue, iterables)
+    print(self.errorMsg)
 
-  def checkbox(self, name, options, defaultChecked=None):
-    if defaultChecked is None:
-      defaultChecked = list(map(lambda items: items[0], options))
-    optionTuples = list(map(lambda items: self.__tupleToScalaTuple2(items), options))
-    optionIterables = gateway.jvm.scala.collection.JavaConversions.collectionAsScalaIterable(optionTuples)
-    defaultCheckedIterables = gateway.jvm.scala.collection.JavaConversions.collectionAsScalaIterable(defaultChecked)
+  def checkbox(self, name, options, defaultChecked=[]):
+    print(self.errorMsg)
 
-    checkedIterables = self.z.checkbox(name, defaultCheckedIterables, optionIterables)
-    return gateway.jvm.scala.collection.JavaConversions.asJavaCollection(checkedIterables)
+  def show(self, p, **kwargs):
+    if hasattr(p, '__name__') and p.__name__ == "matplotlib.pyplot":
+      self.show_matplotlib(p, **kwargs)
+    elif type(p).__name__ == "DataFrame": # does not play well with sub-classes
+      # `isinstance(p, DataFrame)` would req `import pandas.core.frame.DataFrame`
+      # and so a dependency on pandas
+      self.show_dataframe(p, **kwargs)
+    elif hasattr(p, '__call__'):
+      p() #error reporting
 
-  def registerHook(self, event, cmd, replName=None):
-    if replName is None:
-      self.z.registerHook(event, cmd)
+  def show_dataframe(self, df, show_index=False, **kwargs):
+    """Pretty prints DF using Table Display System
+    """
+    limit = len(df) > self.max_result
+    header_buf = StringIO("")
+    if show_index:
+      idx_name = str(df.index.name) if df.index.name is not None else ""
+      header_buf.write(idx_name + "\t")
+    header_buf.write(str(df.columns[0]))
+    for col in df.columns[1:]:
+      header_buf.write("\t")
+      header_buf.write(str(col))
+    header_buf.write("\n")
+
+    body_buf = StringIO("")
+    rows = df.head(self.max_result).values if limit else df.values
+    index = df.index.values
+    for idx, row in zip(index, rows):
+      if show_index:
+        body_buf.write("%html <strong>{}</strong>".format(idx))
+        body_buf.write("\t")
+      body_buf.write(str(row[0]))
+      for cell in row[1:]:
+        body_buf.write("\t")
+        body_buf.write(str(cell))
+      body_buf.write("\n")
+    body_buf.seek(0); header_buf.seek(0)
+    #TODO(bzz): fix it, so it shows red notice, as in Spark
+    print("%table " + header_buf.read() + body_buf.read()) # +
+    #      ("\n<font color=red>Results are limited by {}.</font>" \
+    #          .format(self.max_result) if limit else "")
+    #)
+    body_buf.close(); header_buf.close()
+
+  def show_matplotlib(self, p, fmt="png", width="auto", height="auto",
+                      **kwargs):
+    """Matplotlib show function
+    """
+    if fmt == "png":
+      img = BytesIO()
+      p.savefig(img, format=fmt)
+      img_str = b"data:image/png;base64,"
+      img_str += base64.b64encode(img.getvalue().strip())
+      img_tag = "<img src={img} style='width={width};height:{height}'>"
+      # Decoding is necessary for Python 3 compability
+      img_str = img_str.decode("ascii")
+      img_str = img_tag.format(img=img_str, width=width, height=height)
+    elif fmt == "svg":
+      img = StringIO()
+      p.savefig(img, format=fmt)
+      img_str = img.getvalue()
     else:
-      self.z.registerHook(event, cmd, replName)
+      raise ValueError("fmt must be 'png' or 'svg'")
 
-  def unregisterHook(self, event, replName=None):
-    if replName is None:
-      self.z.unregisterHook(event)
-    else:
-      self.z.unregisterHook(event, replName)
+    html = "%html <div style='width:{width};height:{height}'>{img}<div>"
+    print(html.format(width=width, height=height, img=img_str))
+    img.close()
 
-  def getHook(self, event, replName=None):
-    if replName is None:
-      return self.z.getHook(event)
-    return self.z.getHook(event, replName)
+  def configure_mpl(self, **kwargs):
+    import mpl_config
+    mpl_config.configure(**kwargs)
 
   def _setup_matplotlib(self):
     # If we don't have matplotlib installed don't bother continuing
@@ -111,38 +140,27 @@ class PyZeppelinContext(dict):
       import matplotlib
     except ImportError:
       return
-    
     # Make sure custom backends are available in the PYTHONPATH
     rootdir = os.environ.get('ZEPPELIN_HOME', os.getcwd())
     mpl_path = os.path.join(rootdir, 'interpreter', 'lib', 'python')
     if mpl_path not in sys.path:
       sys.path.append(mpl_path)
-    
+
     # Finally check if backend exists, and if so configure as appropriate
     try:
       matplotlib.use('module://backend_zinline')
       import backend_zinline
-      
+
       # Everything looks good so make config assuming that we are using
       # an inline backend
       self._displayhook = backend_zinline.displayhook
-      self.configure_mpl(width=600, height=400, dpi=72, fontsize=10,
-                         interactive=True, format='png', context=self.z)
+      self.configure_mpl(width=600, height=400, dpi=72,
+                         fontsize=10, interactive=True, format='png')
     except ImportError:
       # Fall back to Agg if no custom backend installed
       matplotlib.use('Agg')
       warnings.warn("Unable to load inline matplotlib backend, "
                     "falling back to Agg")
-
-  def configure_mpl(self, **kwargs):
-    import mpl_config
-    mpl_config.configure(**kwargs)
-
-  def __tupleToScalaTuple2(self, tuple):
-    if (len(tuple) == 2):
-      return gateway.jvm.scala.Tuple2(tuple[0], tuple[1])
-    else:
-      raise IndexError("options must be a list of tuple of 2")
 
 
 output = Logger()
@@ -158,8 +176,8 @@ gateway = JavaGateway(client, auto_convert = True)
 intp = gateway.entry_point
 intp.onPythonScriptInitialized()
 
-#z = PyZeppelinContext(intp.getZeppelinContext())
-#z._setup_matplotlib()
+z = PyZeppelinContext()
+z._setup_matplotlib()
 
 while True :
   req = intp.getStatements()
@@ -201,12 +219,13 @@ while True :
       # so that the last statement's evaluation will be printed to stdout
       #sc.setJobGroup(jobGroup, "Zeppelin")
       code = compile('\n'.join(final_code), '<stdin>', 'exec', ast.PyCF_ONLY_AST, 1)
-      to_run_hooks = code.body[-nhooks:]
 
-      print ("to_run_hooks : " + to_run_hooks)
+      to_run_hooks = []
+      if (nhooks > 0):
+        to_run_hooks = code.body[-nhooks:]
+
       to_run_exec, to_run_single = (code.body[:-(nhooks + 1)],
                                     [code.body[-(nhooks + 1)]])
-      print ("to_run_single : " + to_run_single)
 
       try:
         for node in to_run_exec:
@@ -214,12 +233,10 @@ while True :
           code = compile(mod, '<stdin>', 'exec')
           exec(code)
 
-        '''
         for node in to_run_single:
           mod = ast.Interactive([node])
           code = compile(mod, '<stdin>', 'single')
           exec(code)
-        '''
 
         for node in to_run_hooks:
           mod = ast.Module([node])

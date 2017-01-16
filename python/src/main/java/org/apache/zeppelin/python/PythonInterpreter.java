@@ -133,7 +133,6 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
     // Run python shell
     //CommandLine cmd = CommandLine.parse(getProperty("zeppelin.pyspark.python"));
     CommandLine cmd = CommandLine.parse("python");
-    logger.info("cmd ===> {}", cmd);
     cmd.addArgument(scriptPath, false);
     cmd.addArgument(Integer.toString(port), false);
     executor = new DefaultExecutor();
@@ -171,6 +170,12 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
 
   @Override
   public void open() {
+    // Add matplotlib display hook
+    InterpreterGroup intpGroup = getInterpreterGroup();
+    if (intpGroup != null && intpGroup.getInterpreterHookRegistry() != null) {
+      registerHook(HookType.POST_EXEC_DEV, "z._displayhook()");
+    }
+
     // Add matplotlib display hook
     createGatewayServerAndStartScript();
   }
@@ -295,15 +300,12 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
       throw new InterpreterException(e);
     }
 
-    logger.info("step 1 --------------");
-
     if (pythonscriptRunning == false) {
       // python script failed to initialize and terminated
       errorMessage.add(new InterpreterResultMessage(
         InterpreterResult.Type.TEXT, "failed to start pyspark"));
       return new InterpreterResult(Code.ERROR, errorMessage);
     }
-    logger.info("step 2 --------------");
     if (pythonScriptInitialized == false) {
       // timeout. didn't get initialized message
       errorMessage.add(new InterpreterResultMessage(
@@ -311,16 +313,13 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
       return new InterpreterResult(Code.ERROR, errorMessage);
     }
 
-    logger.info("step 3 --------------");
     pythonInterpretRequest = new PythonInterpretRequest(cmd, null);
     statementOutput = null;
 
-    logger.info("step 4 --------------");
     synchronized (statementSetNotifier) {
       statementSetNotifier.notify();
     }
 
-    logger.info("step 5 --------------");
     synchronized (statementFinishedNotifier) {
       while (statementOutput == null) {
         try {
@@ -329,14 +328,11 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
         }
       }
     }
-    logger.info("step 6 --------------");
 
     if (statementError) {
-      logger.info("step 7 --------------");
       return new InterpreterResult(Code.ERROR, statementOutput);
     } else {
 
-      logger.info("step 8 --------------");
       try {
         context.out.flush();
       } catch (IOException e) {
