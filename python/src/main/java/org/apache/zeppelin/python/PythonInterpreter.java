@@ -271,6 +271,14 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
       return new InterpreterResult(Code.SUCCESS, "");
     }
 
+    /*
+    try {
+      Thread.sleep(5000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    */
+
     this.context = contextInterpreter;
 
     if (!pythonscriptRunning) {
