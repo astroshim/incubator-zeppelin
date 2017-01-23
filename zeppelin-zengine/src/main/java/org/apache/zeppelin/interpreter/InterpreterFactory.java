@@ -737,7 +737,7 @@ public class InterpreterFactory implements InterpreterGroupFactory {
       String noteId) {
     InterpreterOption option = interpreterSetting.getOption();
     if (option.isProcess()) {
-      interpreterSetting.closeAndRemoveInterpreterGroup(noteId);
+      interpreterSetting.closeAndRemoveInterpreterGroupByNoteId(noteId);
     } else if (option.isSession()) {
       InterpreterGroup interpreterGroup = interpreterSetting.getInterpreterGroup(user, noteId);
       String key = getInterpreterSessionKey(user, noteId, interpreterSetting);
@@ -971,18 +971,23 @@ public class InterpreterFactory implements InterpreterGroupFactory {
     return noteId == null ? false : true;
   }
 
-  public void restart(String settingId, String noteId) {
+  public void restart(String settingId, String noteId, String user) {
     InterpreterSetting intpSetting = interpreterSettings.get(settingId);
     Preconditions.checkNotNull(intpSetting);
 
+    // restart interpreter setting in note page
     if (noteIdIsExist(noteId) && intpSetting.getOption().isProcess()) {
-      intpSetting.closeAndRemoveInterpreterGroup(noteId);
+      intpSetting.closeAndRemoveInterpreterGroupByNoteId(noteId);
       return;
+    } else {
+      // restart interpreter setting in interpreter setting page
+      restart(settingId, user);
     }
-    restart(settingId);
+
+
   }
 
-  public void restart(String id) {
+  public void restart(String id, String user) {
     synchronized (interpreterSettings) {
       InterpreterSetting intpSetting = interpreterSettings.get(id);
       // Check if dependency in specified path is changed
@@ -993,13 +998,20 @@ public class InterpreterFactory implements InterpreterGroupFactory {
         copyDependenciesFromLocalPath(intpSetting);
 
         stopJobAllInterpreter(intpSetting);
-
-        intpSetting.closeAndRemoveAllInterpreterGroups();
+        if (user.equals("anonymous")) {
+          intpSetting.closeAndRemoveAllInterpreterGroups();
+        } else {
+          intpSetting.closeAndRemoveInterpreterGroupByUser(user);
+        }
 
       } else {
         throw new InterpreterException("Interpreter setting id " + id + " not found");
       }
     }
+  }
+
+  public void restart(String id) {
+    restart(id, "anonymous");
   }
 
   private void stopJobAllInterpreter(InterpreterSetting intpSetting) {
@@ -1138,7 +1150,7 @@ public class InterpreterFactory implements InterpreterGroupFactory {
     LazyOpenInterpreter intp = new LazyOpenInterpreter(
         new RemoteInterpreter(property, interpreterSessionKey, className, host, port, localRepoPath,
             connectTimeout, maxPoolSize, remoteInterpreterProcessListener, appEventListener,
-            userName, isUserImpersonate));
+            userName, isUserImpersonate, conf.getInt(ConfVars.ZEPPELIN_INTERPRETER_OUTPUT_LIMIT)));
     return intp;
   }
 
@@ -1163,7 +1175,8 @@ public class InterpreterFactory implements InterpreterGroupFactory {
     RemoteInterpreter remoteInterpreter =
         new RemoteInterpreter(property, interpreterSessionKey, className,
             interpreterRunnerPath, interpreterPath, localRepoPath, connectTimeout, maxPoolSize,
-            remoteInterpreterProcessListener, appEventListener, userName, isUserImpersonate);
+            remoteInterpreterProcessListener, appEventListener, userName, isUserImpersonate,
+            conf.getInt(ConfVars.ZEPPELIN_INTERPRETER_OUTPUT_LIMIT));
     remoteInterpreter.addEnv(env);
 
     return new LazyOpenInterpreter(remoteInterpreter);

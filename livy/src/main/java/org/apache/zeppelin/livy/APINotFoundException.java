@@ -15,23 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.zeppelin
+package org.apache.zeppelin.livy;
 
-import org.openqa.selenium.WebDriver
-import org.scalatest.concurrent.Eventually._
-import org.scalatest.time._
-import org.scalatest.selenium.WebBrowser
-import org.scalatest.{DoNotDiscover, FunSuite}
-import AbstractFunctionalSuite.SERVER_ADDRESS
-
-@DoNotDiscover
-class WelcomePageSuite(implicit driver: WebDriver) extends FunSuite with WebBrowser {
-
-  test("Welcome sign is correct") {
-    eventually (timeout(Span(180, Seconds))) {
-      go to SERVER_ADDRESS
-      assert(find("welcome").isDefined)
-    }
+/**
+ * APINotFoundException happens because we may introduce new apis in new livy version.
+ */
+public class APINotFoundException extends LivyException {
+  public APINotFoundException() {
   }
 
+  public APINotFoundException(String message) {
+    super(message);
+  }
+
+  public APINotFoundException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public APINotFoundException(Throwable cause) {
+    super(cause);
+  }
+
+  public APINotFoundException(String message, Throwable cause, boolean enableSuppression,
+                              boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }
