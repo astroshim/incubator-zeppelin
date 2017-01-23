@@ -3,7 +3,7 @@
     {
       "text": "%md\n## Introduction\nIn this tutorial we will go through some of the basic features of Zeppelin\u0027s built-in matplotlib integration. \n\n### Prerequisites\n`matplotlib` must be installed to your local python installation. (use `pip install matplotlib` or `conda install matplotlib` if you have `conda`). Additionally, you will need Zeppelin\u0027s matplotlib backend files which are usually found in `$ZEPPELIN_HOME/lib/python`. Although Zeppelin should automatically find this directory, it might be a good idea to add it to your `PYTHONPATH` just in case. \n\n### Interpreters\nMost of the examples shown in this tutorial can be used interchangeably with either the `python` or `pyspark` interpreters. Iterative plotting using the Angular Display System is currently only available for `pyspark`, but this functionality will eventually be added to the base `python` interpreter. \n\n### macOS\nMake sure locale is set, to avoid `ValueError: unknown locale: UTF-8`\n\n### virtualenv\nIn case you want to use virtualenv or conda env:\n - configure python interpreter property -\u003e `absolute/path/to/venv/bin/python`\n - see *Working with Matplotlib in Virtual environments* in the [Matplotlib FAQ](http://matplotlib.org/faq/virtualenv_faq.html)\n \n### A simple example\nLet\u0027s start by making a very simple line plot:",
       "user": "anonymous",
-      "dateUpdated": "Jan 16, 2017 12:59:56 PM",
+      "dateUpdated": "Jan 22, 2017 12:27:58 PM",
       "config": {
         "tableHide": false,
         "colWidth": 12.0,
@@ -54,10 +54,10 @@
     {
       "text": "%python\nimport matplotlib.pyplot as plt\nplt.plot([1, 2, 3])",
       "user": "anonymous",
-      "dateUpdated": "Jan 16, 2017 12:59:13 PM",
+      "dateUpdated": "Jan 22, 2017 12:27:55 PM",
       "config": {
         "colWidth": 12.0,
-        "editorMode": "ace/mode/text",
+        "editorMode": "ace/mode/python",
         "enabled": true,
         "results": [
           {
@@ -73,7 +73,7 @@
           }
         ],
         "editorSetting": {
-          "language": "text",
+          "language": "python",
           "editOnDblClick": false
         }
       },
@@ -86,7 +86,7 @@
         "msg": [
           {
             "type": "TEXT",
-            "data": "[\u003cmatplotlib.lines.Line2D object at 0x10b82ced0\u003e]\n"
+            "data": "[\u003cmatplotlib.lines.Line2D object at 0x10be54e90\u003e]\n"
           },
           {
             "type": "HTML",
@@ -98,8 +98,8 @@
       "jobName": "paragraph_1478123627958_-1475087605",
       "id": "20161101-192232_289486976",
       "dateCreated": "Nov 2, 2016 2:53:47 PM",
-      "dateStarted": "Jan 16, 2017 12:59:13 PM",
-      "dateFinished": "Jan 16, 2017 12:59:14 PM",
+      "dateStarted": "Jan 22, 2017 12:27:55 PM",
+      "dateFinished": "Jan 22, 2017 12:27:55 PM",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
@@ -149,10 +149,10 @@
     {
       "text": "%python\n# Figure 1\nplt.plot([1, 2, 3])\n\n# Figure 2\nplt.figure()\nplt.plot([3, 2, 1])",
       "user": "anonymous",
-      "dateUpdated": "Jan 16, 2017 12:59:20 PM",
+      "dateUpdated": "Jan 22, 2017 12:27:58 PM",
       "config": {
         "colWidth": 12.0,
-        "editorMode": "ace/mode/text",
+        "editorMode": "ace/mode/python",
         "enabled": true,
         "results": [
           {
@@ -168,7 +168,7 @@
           }
         ],
         "editorSetting": {
-          "language": "text",
+          "language": "python",
           "editOnDblClick": false
         }
       },
@@ -181,7 +181,7 @@
         "msg": [
           {
             "type": "TEXT",
-            "data": "[\u003cmatplotlib.lines.Line2D object at 0x10c01a790\u003e]\n"
+            "data": "[\u003cmatplotlib.lines.Line2D object at 0x10c00af90\u003e]\n"
           },
           {
             "type": "HTML",
@@ -193,8 +193,8 @@
       "jobName": "paragraph_1478123627959_-1475472354",
       "id": "20161101-193533_2096366908",
       "dateCreated": "Nov 2, 2016 2:53:47 PM",
-      "dateStarted": "Jan 16, 2017 12:59:20 PM",
-      "dateFinished": "Jan 16, 2017 12:59:21 PM",
+      "dateStarted": "Jan 22, 2017 12:27:58 PM",
+      "dateFinished": "Jan 22, 2017 12:27:59 PM",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
