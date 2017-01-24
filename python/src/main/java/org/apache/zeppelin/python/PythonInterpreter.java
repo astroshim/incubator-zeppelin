@@ -41,6 +41,7 @@ import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteResultHandler;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.exec.environment.EnvironmentUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.zeppelin.display.GUI;
 import org.apache.zeppelin.interpreter.*;
@@ -74,9 +75,7 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
   private String pythonPath;
   private int maxResult;
 
-  PythonProcess process = null;
-  private String pythonCommand = null;
-
+  private String pythonCommand = DEFAULT_ZEPPELIN_PYTHON;
 
   private GatewayServer gatewayServer;
   private DefaultExecutor executor;
@@ -132,7 +131,9 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
 
     // Run python shell
     //CommandLine cmd = CommandLine.parse(getProperty("zeppelin.pyspark.python"));
+
     CommandLine cmd = CommandLine.parse("python");
+    //CommandLine cmd = CommandLine.parse(getPythonCommand());
     cmd.addArgument(scriptPath, false);
     cmd.addArgument(Integer.toString(port), false);
     executor = new DefaultExecutor();
@@ -153,16 +154,33 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
     executor.setWatchdog(new ExecuteWatchdog(ExecuteWatchdog.INFINITE_TIMEOUT));
 
     try {
+      // astro should pass env
+      Map env = EnvironmentUtils.getProcEnvironment();
+
+      /*
+      logger.info("astro env python ==> {}", env);
+      for (Object key : env.keySet()) {
+        logger.info("*** astro env python ==> {} : {}", key, env.get(key));
+      }
+      */
+      logger.info("astro run python 1==> {}", getPythonCommand());
+
+      //env.put("PYTHONPATH", "/Users/shim/miniconda2/envs/tensorflow/bin/python");
+      env.put("PATH", getPythonCommand());
+
       executor.execute(cmd, null, this);
+      logger.info("astro run python 2==> {}", getPythonCommand());
       pythonscriptRunning = true;
     } catch (IOException e) {
       throw new InterpreterException(e);
     }
 
-
+    logger.info("astro run python 3==> {}", getPythonCommand());
     try {
       input.write("import sys, getopt\n".getBytes());
+      logger.info("astro run python 4==> {}", getPythonCommand());
       ins.flush();
+      logger.info("astro run python 5==> {}", getPythonCommand());
     } catch (IOException e) {
       throw new InterpreterException(e);
     }
@@ -170,6 +188,9 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
 
   @Override
   public void open() {
+    logger.info("astro Got open signal!");
+    pythonscriptRunning = false;
+
     // Add matplotlib display hook
     InterpreterGroup intpGroup = getInterpreterGroup();
     if (intpGroup != null && intpGroup.getInterpreterHookRegistry() != null) {
@@ -182,6 +203,10 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
 
   @Override
   public void close() {
+    logger.info("astro Got close signal!");
+
+    pythonscriptRunning = false;
+
     executor.getWatchdog().destroyProcess();
     new File(scriptPath).delete();
     gatewayServer.shutdown();
@@ -267,18 +292,23 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
 
   @Override
   public InterpreterResult interpret(String cmd, InterpreterContext contextInterpreter) {
+    logger.info("astro interpreter 1==> {}", cmd);
     if (cmd == null || cmd.isEmpty()) {
       return new InterpreterResult(Code.SUCCESS, "");
     }
 
+    logger.info("astro interpreter 2==> {}", cmd);
     this.context = contextInterpreter;
 
+    logger.info("astro interpreter 3 pythonscriptRunning ==> {}", pythonscriptRunning);
     if (!pythonscriptRunning) {
       return new InterpreterResult(Code.ERROR, "python process not running"
         + outputStream.toString());
     }
 
     outputStream.setInterpreterOutput(context.out);
+
+    logger.info("astro interpreter 4 pythonScriptInitialized ==> {}", pythonScriptInitialized);
 
     synchronized (pythonScriptInitializeNotifier) {
       long startTime = System.currentTimeMillis();
@@ -291,6 +321,7 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
         }
       }
     }
+    logger.info("astro interpreter 5==> {}", cmd);
 
     List<InterpreterResultMessage> errorMessage;
     try {
@@ -303,13 +334,13 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
     if (pythonscriptRunning == false) {
       // python script failed to initialize and terminated
       errorMessage.add(new InterpreterResultMessage(
-        InterpreterResult.Type.TEXT, "failed to start pyspark"));
+        InterpreterResult.Type.TEXT, "failed to start python"));
       return new InterpreterResult(Code.ERROR, errorMessage);
     }
     if (pythonScriptInitialized == false) {
       // timeout. didn't get initialized message
       errorMessage.add(new InterpreterResultMessage(
-        InterpreterResult.Type.TEXT, "pyspark is not responding"));
+        InterpreterResult.Type.TEXT, "python is not responding"));
       return new InterpreterResult(Code.ERROR, errorMessage);
     }
 
@@ -365,11 +396,6 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
 
   @Override
   public void cancel(InterpreterContext context) {
-    try {
-      process.interrupt();
-    } catch (IOException e) {
-      LOG.error("Can't interrupt the python interpreter", e);
-    }
   }
 
   @Override
@@ -397,19 +423,8 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
     this.pythonPath = pythonPath;
   }
 
-  public PythonProcess getPythonProcess() {
-    if (process == null) {
-      String binPath = getProperty(ZEPPELIN_PYTHON);
-      if (pythonCommand != null) {
-        binPath = pythonCommand;
-      }
-      return new PythonProcess(binPath, pythonPath);
-    } else {
-      return process;
-    }
-  }
-
   public void setPythonCommand(String cmd) {
+    logger.info("astro setPythonCommand => {}", cmd);
     pythonCommand = cmd;
   }
 
@@ -429,56 +444,12 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
     return foundJob;
   }
 
-  /**
-   * Sends given text to Python interpreter, blocks and returns the output
-   * @param cmd Python expression text
-   * @return output
-   */
-  String sendCommandToPython(String cmd) {
-    String output = "";
-    LOG.debug("Sending : \n" + (cmd.length() > 200 ? cmd.substring(0, 200) + "..." : cmd));
-    try {
-      output = process.sendAndGetResult(cmd);
-    } catch (IOException e) {
-      LOG.error("Error when sending commands to python process", e);
-    }
-    LOG.debug("Got : \n" + output);
-    return output;
-  }
-
-  void bootStrapInterpreter(String file) throws IOException {
-    BufferedReader bootstrapReader = new BufferedReader(
-        new InputStreamReader(
-            PythonInterpreter.class.getResourceAsStream(file)));
-    String line = null;
-    String bootstrapCode = "";
-
-    while ((line = bootstrapReader.readLine()) != null) {
-      bootstrapCode += line + "\n";
-    }
-    if (py4JisInstalled && port != -1) {
-      bootstrapCode = bootstrapCode.replaceAll("\\%PORT\\%", "" + port);
-    }
-    /*
-    if (py4JisInstalled && port != null && port != -1) {
-      bootstrapCode = bootstrapCode.replaceAll("\\%PORT\\%", port.toString());
-    }
-    */
-    LOG.info("Bootstrap python interpreter with code from \n " + file);
-    sendCommandToPython(bootstrapCode);
-  }
-
   public GUI getGui() {
     return context.getGui();
   }
 
   public Integer getPy4jPort() {
     return port;
-  }
-
-  public Boolean isPy4jInstalled() {
-    String output = sendCommandToPython("\n\nimport py4j\n");
-    return !output.contains("ImportError");
   }
 
   private int findRandomOpenPortOnAllLocalInterfaces() {

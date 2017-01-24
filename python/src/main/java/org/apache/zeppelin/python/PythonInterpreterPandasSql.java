@@ -67,8 +67,8 @@ public class PythonInterpreterPandasSql extends Interpreter {
     try {
       LOG.info("Bootstrap {} interpreter with {}", this.toString(), SQL_BOOTSTRAP_FILE_PY);
       PythonInterpreter python = getPythonInterpreter();
-      python.bootStrapInterpreter(SQL_BOOTSTRAP_FILE_PY);
-    } catch (IOException e) {
+      //python.bootStrapInterpreter(SQL_BOOTSTRAP_FILE_PY);
+    } catch (Exception e) {
       LOG.error("Can't execute " + SQL_BOOTSTRAP_FILE_PY + " to import SQL dependencies", e);
     }
   }
@@ -79,7 +79,8 @@ public class PythonInterpreterPandasSql extends Interpreter {
    */
   boolean isPandasAndPandasqlInstalled() {
     PythonInterpreter python = getPythonInterpreter();
-    String output = python.sendCommandToPython("\n\nimport pandas\nimport pandasql\n");
+    String output = "";
+    //String output = python.sendCommandToPython("\n\nimport pandas\nimport pandasql\n");
     return !output.contains("ImportError");
   }
 
