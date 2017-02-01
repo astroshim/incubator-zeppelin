@@ -162,16 +162,14 @@ class PyZeppelinContext(object):
       warnings.warn("Unable to load inline matplotlib backend, "
                     "falling back to Agg")
 
-
 output = Logger()
 sys.stdout = output
 sys.stderr = output
 
-
 client = GatewayClient(port=int(sys.argv[1]))
 
-gateway = JavaGateway(client, auto_convert = True)
-#gateway = JavaGateway(client)
+#gateway = JavaGateway(client, auto_convert = True)
+gateway = JavaGateway(client)
 
 intp = gateway.entry_point
 intp.onPythonScriptInitialized()
@@ -191,7 +189,6 @@ while True :
       global_hook = intp.getHook('post_exec_dev')
     except:
       global_hook = None
-
 
     try:
       user_hook = z.getHook('post_exec')

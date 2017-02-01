@@ -288,13 +288,13 @@ while True :
     stmts = req.statements().split("\n")
     jobGroup = req.jobGroup()
     final_code = []
-    
+
     # Get post-execute hooks
     try:
       global_hook = intp.getHook('post_exec_dev')
     except:
       global_hook = None
-      
+
     try:
       user_hook = z.getHook('post_exec')
     except:
@@ -306,6 +306,7 @@ while True :
         nhooks += 1
 
     for s in stmts:
+      print ("astro --> " + s)
       if s == None:
         continue
 
@@ -321,7 +322,9 @@ while True :
       # so that the last statement's evaluation will be printed to stdout
       sc.setJobGroup(jobGroup, "Zeppelin")
       code = compile('\n'.join(final_code), '<stdin>', 'exec', ast.PyCF_ONLY_AST, 1)
-      to_run_hooks = code.body[-nhooks:]
+      to_run_hooks = []
+      if (nhooks > 0):
+        to_run_hooks = code.body[-nhooks:]
       to_run_exec, to_run_single = (code.body[:-(nhooks + 1)],
                                     [code.body[-(nhooks + 1)]])
 

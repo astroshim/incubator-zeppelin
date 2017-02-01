@@ -201,8 +201,6 @@ public class PythonCondaInterpreter extends Interpreter {
   private InterpreterResult runCondaActivate(String envName)
       throws IOException, InterruptedException {
 
-    logger.info("astro RunCondaActivate envName : ", envName);
-
     if (null == envName || envName.isEmpty()) {
       return new InterpreterResult(Code.ERROR, "Env name should be specified");
     }
@@ -215,8 +213,6 @@ public class PythonCondaInterpreter extends Interpreter {
 
   private InterpreterResult runCondaDeactivate()
       throws IOException, InterruptedException {
-
-    logger.info("astro RunCondaDeactivate.");
 
     changePythonEnvironment(null);
     restartPythonProcess();
@@ -354,6 +350,7 @@ public class PythonCondaInterpreter extends Interpreter {
   @Override
   public Scheduler getScheduler() {
     PythonInterpreter pythonInterpreter = getPythonInterpreter();
+
     if (pythonInterpreter != null) {
       return pythonInterpreter.getScheduler();
     } else {
