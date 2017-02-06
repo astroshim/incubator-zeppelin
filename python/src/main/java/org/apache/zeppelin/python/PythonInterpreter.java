@@ -86,6 +86,8 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
   boolean pythonscriptRunning = false;
   private static final int MAX_TIMEOUT_SEC = 10;
 
+  private long pythonPid = 0;
+
   Integer statementSetNotifier = new Integer(0);
 
   public PythonInterpreter(Properties property) {
@@ -142,7 +144,6 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
       throw new InterpreterException(e1);
     }
     ins = new BufferedWriter(new OutputStreamWriter(ps));
-
     input = new ByteArrayOutputStream();
 
     PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream, outputStream, in);
@@ -157,6 +158,9 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
 
       executor.execute(cmd, env, this);
       pythonscriptRunning = true;
+
+      //long pid = findPid();
+
     } catch (IOException e) {
       throw new InterpreterException(e);
     }
@@ -168,6 +172,19 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
       throw new InterpreterException(e);
     }
   }
+
+  /*
+  private long findPid() throws NoSuchFieldException, IllegalAccessException {
+    long pid = -1;
+    if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
+      Field f = process.getClass().getDeclaredField("pid");
+      f.setAccessible(true);
+      pid = f.getLong(process);
+      f.setAccessible(false);
+    }
+    return pid;
+  }
+  */
 
   @Override
   public void open() {
@@ -266,7 +283,8 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
   boolean pythonScriptInitialized = false;
   Integer pythonScriptInitializeNotifier = new Integer(0);
 
-  public void onPythonScriptInitialized() {
+  public void onPythonScriptInitialized(long pid) {
+    pythonPid = pid;
     synchronized (pythonScriptInitializeNotifier) {
       pythonScriptInitialized = true;
       pythonScriptInitializeNotifier.notifyAll();
@@ -377,8 +395,23 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
     return isError;
   }
 
+  public void interrupt() throws IOException {
+    if (pythonPid > -1) {
+      logger.info("Sending SIGINT signal to PID : " + pythonPid);
+      Runtime.getRuntime().exec("kill -SIGINT " + pythonPid);
+    } else {
+      logger.warn("Non UNIX/Linux system, close the interpreter");
+      close();
+    }
+  }
+
   @Override
   public void cancel(InterpreterContext context) {
+    try {
+      interrupt();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override

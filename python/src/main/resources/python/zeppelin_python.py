@@ -23,6 +23,7 @@ import warnings
 import ast
 import traceback
 import warnings
+import signal
 
 
 # for back compatibility
@@ -162,6 +163,13 @@ class PyZeppelinContext(object):
       warnings.warn("Unable to load inline matplotlib backend, "
                     "falling back to Agg")
 
+
+def handler_stop_signals(signum, frame):
+  sys.exit("GOOOOOOOOOOOOOOOOD! errors!")
+
+
+signal.signal(signal.SIGINT, handler_stop_signals)
+
 output = Logger()
 sys.stdout = output
 sys.stderr = output
@@ -172,7 +180,7 @@ client = GatewayClient(port=int(sys.argv[1]))
 gateway = JavaGateway(client)
 
 intp = gateway.entry_point
-intp.onPythonScriptInitialized()
+intp.onPythonScriptInitialized(os.getpid())
 
 z = PyZeppelinContext()
 z._setup_matplotlib()
