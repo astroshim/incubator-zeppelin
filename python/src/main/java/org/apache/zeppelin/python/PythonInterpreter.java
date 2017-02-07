@@ -158,9 +158,6 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
 
       executor.execute(cmd, env, this);
       pythonscriptRunning = true;
-
-      //long pid = findPid();
-
     } catch (IOException e) {
       throw new InterpreterException(e);
     }
@@ -172,19 +169,6 @@ public class PythonInterpreter extends Interpreter implements ExecuteResultHandl
       throw new InterpreterException(e);
     }
   }
-
-  /*
-  private long findPid() throws NoSuchFieldException, IllegalAccessException {
-    long pid = -1;
-    if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
-      Field f = process.getClass().getDeclaredField("pid");
-      f.setAccessible(true);
-      pid = f.getLong(process);
-      f.setAccessible(false);
-    }
-    return pid;
-  }
-  */
 
   @Override
   public void open() {

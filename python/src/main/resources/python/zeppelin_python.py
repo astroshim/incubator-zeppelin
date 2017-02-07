@@ -164,8 +164,8 @@ class PyZeppelinContext(object):
                     "falling back to Agg")
 
 
-def handler_stop_signals(signum, frame):
-  sys.exit("GOOOOOOOOOOOOOOOOD! errors!")
+def handler_stop_signals(sig, frame):
+  sys.exit("Got signal : " + str(sig))
 
 
 signal.signal(signal.SIGINT, handler_stop_signals)
