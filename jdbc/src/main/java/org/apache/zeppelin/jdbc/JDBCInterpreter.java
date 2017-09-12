@@ -542,7 +542,7 @@ public class JDBCInterpreter extends Interpreter {
 
   private InterpreterResult executeSql(String propertyKey, String sql,
       InterpreterContext interpreterContext) {
-    Connection connection;
+    Connection connection = null;
     Statement statement;
     ResultSet resultSet = null;
     String paragraphId = interpreterContext.getParagraphId();
@@ -601,16 +601,6 @@ public class JDBCInterpreter extends Interpreter {
           }
         }
       }
-      //In case user ran an insert/update/upsert statement
-      if (connection != null) {
-        try {
-          if (!connection.getAutoCommit()) {
-            connection.commit();
-          }
-          connection.close();
-        } catch (SQLException e) { /*ignored*/ }
-      }
-      getJDBCConfiguration(user).removeStatement(paragraphId);
     } catch (Exception e) {
       if (e.getCause() instanceof TTransportException &&
           Throwables.getStackTraceAsString(e).contains("GSS") &&
@@ -627,7 +617,19 @@ public class JDBCInterpreter extends Interpreter {
         interpreterResult.add(errorMsg);
         return new InterpreterResult(Code.ERROR, interpreterResult.message());
       }
+    } finally {
+      //In case user ran an insert/update/upsert statement
+      if (connection != null) {
+        try {
+          if (!connection.getAutoCommit()) {
+            connection.commit();
+          }
+          connection.close();
+        } catch (SQLException e) { /*ignored*/ }
+      }
+      getJDBCConfiguration(user).removeStatement(paragraphId);
     }
+
     return interpreterResult;
   }
 
